@@ -39,6 +39,8 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@prisma/adapter-pg": "^7.8.0",
+    "@swc/core": "^1.15.43",
+    "@swc/jest": "^0.2.39",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
@@ -73,7 +75,15 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "@swc/jest",
+        {
+          "jsc": {
+            "parser": { "syntax": "typescript", "decorators": true },
+            "transform": { "legacyDecorator": true, "decoratorMetadata": true }
+          }
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s",
