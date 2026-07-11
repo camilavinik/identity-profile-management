@@ -8,6 +8,9 @@ import { CreateNameEntryDto } from './dto/create-name-entry.dto';
 import { HistoryQueryDto } from './dto/history-query.dto';
 import type { Context } from '../../generated/prisma/client';
 import { UpdateNameEntryDto } from './dto/update-name-entry.dto';
+import { TransactionClient } from 'generated/prisma/internal/prismaNamespace';
+
+const MAX_SOFT_DELETED_NAME_ENTRIES = 50;
 
 @Injectable()
 export class NameService {
@@ -117,6 +120,9 @@ export class NameService {
 
     // Update name entry in transaction
     return this.prisma.$transaction(async (tx) => {
+      // Enforce max soft deleted name entries
+      await this.enforceMaxSoftDeletedNameEntries(userId, tx);
+
       // Soft delete name entry
       await tx.nameEntry.update({
         where: { id },
@@ -207,5 +213,31 @@ export class NameService {
     }
 
     return context;
+  }
+
+  private async enforceMaxSoftDeletedNameEntries(
+    userId: string,
+    tx: TransactionClient,
+  ) {
+    const count = await tx.nameEntry.count({
+      where: { user_id: userId, deleted_at: { not: null } },
+    });
+
+    // Remove the oldest soft deleted name entry if max is reached
+    if (count >= MAX_SOFT_DELETED_NAME_ENTRIES) {
+      // Calculate the number of entries to remove
+      const exceededCount = count - MAX_SOFT_DELETED_NAME_ENTRIES + 1;
+
+      // Get the oldest exceeded entries
+      const exceededEntries = await tx.nameEntry.findMany({
+        where: { user_id: userId, deleted_at: { not: null } },
+        orderBy: { deleted_at: 'asc' },
+        take: exceededCount,
+      });
+
+      await tx.nameEntry.deleteMany({
+        where: { id: { in: exceededEntries.map((entry) => entry.id) } },
+      });
+    }
   }
 }

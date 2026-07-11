@@ -44,6 +44,9 @@ describe('NameService', () => {
     nameEntry: {
       create: jest.Mock;
       update: jest.Mock;
+      count: jest.Mock;
+      findMany: jest.Mock;
+      deleteMany: jest.Mock;
     };
   };
 
@@ -59,7 +62,13 @@ describe('NameService', () => {
       $transaction: jest.fn(),
     };
     tx = {
-      nameEntry: { create: jest.fn(), update: jest.fn() },
+      nameEntry: {
+        create: jest.fn(),
+        update: jest.fn(),
+        count: jest.fn(),
+        findMany: jest.fn(),
+        deleteMany: jest.fn(),
+      },
     };
     prisma.$transaction.mockImplementation(
       (cb: (t: typeof tx) => Promise<unknown>) => cb(tx),
@@ -510,6 +519,68 @@ describe('NameService', () => {
         }),
       );
       expect(result).toEqual(nameEntryData);
+    });
+
+    it('should cleanup 1 entry when soft-deleted count is at the limit', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count at the limit (50)
+      tx.nameEntry.count.mockResolvedValue(50);
+
+      // Mock the oldest exceeded entries lookup
+      const oldestEntry = { id: 'oldest-entry-id' };
+      tx.nameEntry.findMany.mockResolvedValue([oldestEntry]);
+
+      // Try to update a name entry
+      await service.update('test-user', 'test-entry-id', { value: 'new name' });
+
+      // Check the oldest 1 entry was queried and deleted
+      expect(tx.nameEntry.findMany).toHaveBeenCalledWith({
+        where: { user_id: 'test-user', deleted_at: { not: null } },
+        orderBy: { deleted_at: 'asc' },
+        take: 1,
+      });
+      expect(tx.nameEntry.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: [oldestEntry.id] } },
+      });
+    });
+
+    it('should cleanup entries when soft-deleted count exceeds the limit', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count exceeding the limit (50)
+      tx.nameEntry.count.mockResolvedValue(52);
+
+      // Mock the oldest exceeded entries lookup
+      const oldestEntries = [
+        { id: 'oldest-entry-1' },
+        { id: 'oldest-entry-2' },
+        { id: 'oldest-entry-3' },
+      ];
+      tx.nameEntry.findMany.mockResolvedValue(oldestEntries);
+
+      // Try to update a name entry
+      await service.update('test-user', 'test-entry-id', { value: 'new name' });
+
+      // Check the oldest 3 entries were queried and deleted
+      expect(tx.nameEntry.findMany).toHaveBeenCalledWith({
+        where: { user_id: 'test-user', deleted_at: { not: null } },
+        orderBy: { deleted_at: 'asc' },
+        take: 3,
+      });
+      expect(tx.nameEntry.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: oldestEntries.map((entry) => entry.id) } },
+      });
     });
   });
 });
