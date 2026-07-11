@@ -117,6 +117,17 @@ export class NameService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  async getAllContexts() {
+    return this.prisma.context.findMany({
+      select: {
+        name: true,
+        key: true,
+        description: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   private async validateContext(contextKey: string) {
     const context = await this.prisma.context.findUnique({
       where: { key: contextKey },

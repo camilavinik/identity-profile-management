@@ -30,7 +30,7 @@ const mockNameEntry = (overrides = {}) => ({
 describe('NameService', () => {
   let service: NameService;
   let prisma: {
-    context: { findUnique: jest.Mock };
+    context: { findUnique: jest.Mock; findMany: jest.Mock };
     nameEntry: {
       create: jest.Mock;
       count: jest.Mock;
@@ -41,7 +41,7 @@ describe('NameService', () => {
 
   beforeEach(async () => {
     prisma = {
-      context: { findUnique: jest.fn() },
+      context: { findUnique: jest.fn(), findMany: jest.fn() },
       nameEntry: { create: jest.fn(), count: jest.fn(), findMany: jest.fn() },
       $transaction: jest.fn(),
     };
@@ -310,6 +310,57 @@ describe('NameService', () => {
 
       // Check if the name entry history was not returned
       expect(prisma.nameEntry.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('get all contexts', () => {
+    it('should return all contexts', async () => {
+      // Mock contexts
+      const contextsData = [
+        mockContext({
+          name: 'Context 1',
+          key: 'context-1',
+          description: 'Description 1',
+        }),
+        mockContext({
+          name: 'Context 2',
+          key: 'context-2',
+          description: 'Description 2',
+        }),
+        mockContext({
+          name: 'Context 3',
+          key: 'context-3',
+          description: 'Description 3',
+        }),
+      ];
+      prisma.context.findMany.mockResolvedValue(contextsData);
+
+      // Try to get all contexts
+      const result = await service.getAllContexts();
+
+      // Check if the contexts were returned
+      expect(prisma.context.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { name: 'asc' },
+        }),
+      );
+      expect(result).toBe(contextsData);
+    });
+
+    it('should return an empty array if there are no contexts', async () => {
+      // Mock contexts to return an empty array
+      prisma.context.findMany.mockResolvedValue([]);
+
+      // Try to get all contexts
+      const result = await service.getAllContexts();
+
+      // Check if the contexts were returned
+      expect(prisma.context.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { name: 'asc' },
+        }),
+      );
+      expect(result).toEqual([]);
     });
   });
 });
