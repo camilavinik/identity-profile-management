@@ -9,6 +9,7 @@ describe('NameController', () => {
     create: jest.Mock;
     query: jest.Mock;
     queryHistory: jest.Mock;
+    update: jest.Mock;
   };
   const mockUser: JwtUser = { sub: 'test-user-id', email: 'test@test.com' };
 
@@ -17,6 +18,7 @@ describe('NameController', () => {
       create: jest.fn(),
       query: jest.fn(),
       queryHistory: jest.fn(),
+      update: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -92,6 +94,26 @@ describe('NameController', () => {
         query,
       );
       expect(result).toBe(historyResponse);
+    });
+  });
+
+  describe('update', () => {
+    it('should call nameService.update with the user id, entry id, and dto', async () => {
+      // Mock update response
+      const updatedEntry = { id: 'new-entry-id', value: 'updated' };
+      nameService.update.mockResolvedValue(updatedEntry);
+
+      // Call update with id and dto
+      const dto = { value: 'updated' };
+      const result = await controller.update(mockUser, 'entry-id', dto);
+
+      // Check delegation and return
+      expect(nameService.update).toHaveBeenCalledWith(
+        mockUser.sub,
+        'entry-id',
+        dto,
+      );
+      expect(result).toBe(updatedEntry);
     });
   });
 });

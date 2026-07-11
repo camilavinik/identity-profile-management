@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NameService } from './name.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 /**
  * Mock context object
@@ -24,6 +24,7 @@ const mockNameEntry = (overrides = {}) => ({
   value: 'test',
   charset: 'testcharset',
   context_id: 'test-context-id',
+  audio_url: 'test-audio-url',
   ...overrides,
 });
 
@@ -35,16 +36,34 @@ describe('NameService', () => {
       create: jest.Mock;
       count: jest.Mock;
       findMany: jest.Mock;
+      findUnique: jest.Mock;
     };
     $transaction: jest.Mock;
+  };
+  let tx: {
+    nameEntry: {
+      create: jest.Mock;
+      update: jest.Mock;
+    };
   };
 
   beforeEach(async () => {
     prisma = {
       context: { findUnique: jest.fn(), findMany: jest.fn() },
-      nameEntry: { create: jest.fn(), count: jest.fn(), findMany: jest.fn() },
+      nameEntry: {
+        create: jest.fn(),
+        count: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+      },
       $transaction: jest.fn(),
     };
+    tx = {
+      nameEntry: { create: jest.fn(), update: jest.fn() },
+    };
+    prisma.$transaction.mockImplementation(
+      (cb: (t: typeof tx) => Promise<unknown>) => cb(tx),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [NameService, { provide: PrismaService, useValue: prisma }],
@@ -361,6 +380,136 @@ describe('NameService', () => {
         }),
       );
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('update name entry', () => {
+    it('should throw error if no fields are provided', async () => {
+      // Try to update a name entry with no fields and expect it to throw
+      await expect(
+        service.update('test-user', 'test-entry-id', {}),
+      ).rejects.toThrow(BadRequestException);
+
+      // Check if the update prisma methods were never called
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw error if the name entry does not exist', async () => {
+      // Mock name entry lookup to return null
+      prisma.nameEntry.findUnique.mockResolvedValue(null);
+
+      // Try to update a name entry that does not exist and expect it to throw
+      await expect(
+        service.update('test-user', 'test-entry-id', { value: 'test' }),
+      ).rejects.toThrow(NotFoundException);
+
+      // Check if the update prisma methods were never called
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw error if the context is not valid', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock context lookup to return null
+      prisma.context.findUnique.mockResolvedValue(null);
+
+      // Try to update a name entry with an invalid context and expect it to throw
+      await expect(
+        service.update('test-user', 'test-entry-id', {
+          value: 'test',
+          context: 'invalid',
+        }),
+      ).rejects.toThrow(NotFoundException);
+
+      // Check if the update prisma methods were never called
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should update only the value (inherit other properties)', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry({
+        value: 'old name',
+        charset: 'old charset',
+        context_id: 'old context id',
+        audio_url: 'old audio url',
+      });
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Try to update a name entry with the mock data
+      const result = await service.update('test-user', 'test-entry-id', {
+        value: 'new name',
+      });
+
+      // Check the old entry was soft-deleted, new entry was created and returned
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: 'test-entry-id' },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+      expect(tx.nameEntry.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            user_id: 'test-user',
+            value: 'new name',
+            charset: 'old charset',
+            audio_url: 'old audio url',
+            context_id: 'old context id',
+          },
+        }),
+      );
+      expect(result).toEqual(nameEntryData);
+    });
+
+    it('should update only the context (inherit other properties)', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the new context lookup
+      const newContext = mockContext({
+        id: 'new-context-id',
+        key: 'new-context',
+      });
+      prisma.context.findUnique.mockResolvedValue(newContext);
+
+      // Mock the transaction update return value
+      tx.nameEntry.update.mockResolvedValue({});
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Try to update a name entry with the new context key
+      const result = await service.update('test-user', 'test-entry-id', {
+        context: newContext.key,
+      });
+
+      // Check the old entry was soft-deleted, new entry was created and returned
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: 'test-entry-id' },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+      expect(tx.nameEntry.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            user_id: 'test-user',
+            value: nameEntryData.value,
+            charset: nameEntryData.charset,
+            audio_url: nameEntryData.audio_url,
+            context_id: newContext.id,
+          },
+        }),
+      );
+      expect(result).toEqual(nameEntryData);
     });
   });
 });

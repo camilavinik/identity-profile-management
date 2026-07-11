@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateNameEntryDto } from './dto/create-name-entry.dto';
 import { HistoryQueryDto } from './dto/history-query.dto';
 import type { Context } from '../../generated/prisma/client';
+import { UpdateNameEntryDto } from './dto/update-name-entry.dto';
 
 @Injectable()
 export class NameService {
@@ -72,6 +77,71 @@ export class NameService {
           },
         },
       },
+    });
+  }
+
+  async update(userId: string, id: string, dto: UpdateNameEntryDto) {
+    // Validate that at least one field is provided
+    if (
+      dto.context === undefined &&
+      dto.charset === undefined &&
+      dto.value === undefined
+    ) {
+      throw new BadRequestException(
+        'At least one field is required to update a name entry',
+      );
+    }
+
+    // Get name entry and throw error if not found
+    const nameEntry = await this.prisma.nameEntry.findUnique({
+      where: { id, user_id: userId, deleted_at: null },
+      select: {
+        id: true,
+        value: true,
+        charset: true,
+        audio_url: true,
+        context_id: true,
+      },
+    });
+    if (!nameEntry) {
+      throw new NotFoundException(
+        `Name entry with id '${id}' not found for user '${userId}'`,
+      );
+    }
+
+    // Validate context if provided
+    let context: Context | null = null;
+    if (dto.context) {
+      context = await this.validateContext(dto.context);
+    }
+
+    // Update name entry in transaction
+    return this.prisma.$transaction(async (tx) => {
+      // Soft delete name entry
+      await tx.nameEntry.update({
+        where: { id },
+        data: {
+          deleted_at: new Date(),
+        },
+      });
+
+      // Create new name entry
+      return await tx.nameEntry.create({
+        data: {
+          user_id: userId,
+          value: dto.value ?? nameEntry.value,
+          charset: dto.charset ?? nameEntry.charset,
+          audio_url: nameEntry.audio_url,
+          context_id: context?.id ?? nameEntry.context_id,
+        },
+        select: {
+          id: true,
+          value: true,
+          charset: true,
+          audio_url: true,
+          context: { select: { name: true, key: true, description: true } },
+        },
+      });
     });
   }
 
