@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NameService } from './name.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { StorageService } from 'src/storage/storage.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 /**
@@ -24,8 +25,17 @@ const mockNameEntry = (overrides = {}) => ({
   value: 'test',
   charset: 'testcharset',
   context_id: 'test-context-id',
-  audio_url: 'test-audio-url',
+  audio_key: 'test-audio-key',
   ...overrides,
+});
+
+/**
+ * Mirror of the service's addAudioUrl helper for building expected results.
+ * The mocked storageService.getSignedUrl returns `signed-url:<key>`
+ */
+const withAudioUrl = <T extends { audio_key?: string | null }>(entry: T) => ({
+  ...entry,
+  audio_url: entry.audio_key ? `signed-url:${entry.audio_key}` : null,
 });
 
 describe('NameService', () => {
@@ -37,6 +47,7 @@ describe('NameService', () => {
       count: jest.Mock;
       findMany: jest.Mock;
       findUnique: jest.Mock;
+      update: jest.Mock;
     };
     $transaction: jest.Mock;
   };
@@ -49,6 +60,11 @@ describe('NameService', () => {
       deleteMany: jest.Mock;
     };
   };
+  let storageService: {
+    upload: jest.Mock;
+    getSignedUrl: jest.Mock;
+    delete: jest.Mock;
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -58,6 +74,7 @@ describe('NameService', () => {
         count: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        update: jest.fn(),
       },
       $transaction: jest.fn(),
     };
@@ -65,7 +82,7 @@ describe('NameService', () => {
       nameEntry: {
         create: jest.fn(),
         update: jest.fn(),
-        count: jest.fn(),
+        count: jest.fn().mockResolvedValue(0),
         findMany: jest.fn(),
         deleteMany: jest.fn(),
       },
@@ -73,9 +90,22 @@ describe('NameService', () => {
     prisma.$transaction.mockImplementation(
       (cb: (t: typeof tx) => Promise<unknown>) => cb(tx),
     );
+    storageService = {
+      upload: jest.fn().mockResolvedValue(undefined),
+      getSignedUrl: jest
+        .fn()
+        .mockImplementation((key: string) =>
+          Promise.resolve(`signed-url:${key}`),
+        ),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [NameService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        NameService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: StorageService, useValue: storageService },
+      ],
     }).compile();
 
     service = module.get<NameService>(NameService);
@@ -117,7 +147,7 @@ describe('NameService', () => {
           },
         }),
       );
-      expect(result).toBe(nameEntryData);
+      expect(result).toEqual(withAudioUrl(nameEntryData));
     });
 
     it('should allow empty string name entries', async () => {
@@ -151,7 +181,7 @@ describe('NameService', () => {
           },
         }),
       );
-      expect(result).toBe(emptyNameEntryData);
+      expect(result).toEqual(withAudioUrl(emptyNameEntryData));
     });
 
     it('should throw an error if the context does not exist', async () => {
@@ -180,11 +210,13 @@ describe('NameService', () => {
           id: 'test-1',
           value: 'test 1',
           charset: 'test charset 1',
+          audio_key: null,
         },
         {
           id: 'test-2',
           value: 'test 2',
           charset: 'test charset 2',
+          audio_key: null,
         },
       ];
       prisma.nameEntry.findMany.mockResolvedValue(nameEntriesData);
@@ -201,7 +233,7 @@ describe('NameService', () => {
           },
         }),
       );
-      expect(result).toBe(nameEntriesData);
+      expect(result).toEqual(nameEntriesData.map(withAudioUrl));
     });
 
     it('should return all active name entries for a user when a context is provided', async () => {
@@ -237,7 +269,7 @@ describe('NameService', () => {
           },
         }),
       );
-      expect(result).toBe(nameEntriesData);
+      expect(result).toEqual(nameEntriesData.map(withAudioUrl));
     });
   });
 
@@ -245,7 +277,12 @@ describe('NameService', () => {
     it('should use defaults when no page and limit are provided', async () => {
       // Mock soft-deleted entries
       const deletedEntries = [
-        { id: 'd1', value: 'old name', deleted_at: new Date() },
+        {
+          id: 'd1',
+          value: 'old name',
+          deleted_at: new Date(),
+          audio_key: null,
+        },
       ];
       prisma.nameEntry.findMany.mockResolvedValue(deletedEntries);
       prisma.nameEntry.count.mockResolvedValue(1);
@@ -266,7 +303,7 @@ describe('NameService', () => {
         }),
       );
       expect(result).toEqual({
-        data: deletedEntries,
+        data: deletedEntries.map(withAudioUrl),
         total: 1,
         page: 1,
         limit: 20,
@@ -276,7 +313,9 @@ describe('NameService', () => {
 
     it('should paginate correctly with custom page and limit', async () => {
       // Mock soft-deleted entries
-      const deletedEntries = [{ id: 'd3', value: 'even older' }];
+      const deletedEntries = [
+        { id: 'd3', value: 'even older', audio_key: null },
+      ];
       prisma.nameEntry.findMany.mockResolvedValue(deletedEntries);
       prisma.nameEntry.count.mockResolvedValue(12);
 
@@ -294,7 +333,7 @@ describe('NameService', () => {
         }),
       );
       expect(result).toEqual({
-        data: deletedEntries,
+        data: deletedEntries.map(withAudioUrl),
         total: 12,
         page: 2,
         limit: 5,
@@ -448,7 +487,7 @@ describe('NameService', () => {
         value: 'old name',
         charset: 'old charset',
         context_id: 'old context id',
-        audio_url: 'old audio url',
+        audio_key: 'old-audio-key',
       });
       prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
 
@@ -471,12 +510,12 @@ describe('NameService', () => {
             user_id: 'test-user',
             value: 'new name',
             charset: 'old charset',
-            audio_url: 'old audio url',
+            audio_key: 'old-audio-key',
             context_id: 'old context id',
           },
         }),
       );
-      expect(result).toEqual(nameEntryData);
+      expect(result).toEqual(withAudioUrl(nameEntryData));
     });
 
     it('should update only the context (inherit other properties)', async () => {
@@ -513,12 +552,12 @@ describe('NameService', () => {
             user_id: 'test-user',
             value: nameEntryData.value,
             charset: nameEntryData.charset,
-            audio_url: nameEntryData.audio_url,
+            audio_key: nameEntryData.audio_key,
             context_id: newContext.id,
           },
         }),
       );
-      expect(result).toEqual(nameEntryData);
+      expect(result).toEqual(withAudioUrl(nameEntryData));
     });
 
     it('should cleanup 1 entry when soft-deleted count is at the limit', async () => {
@@ -533,7 +572,7 @@ describe('NameService', () => {
       tx.nameEntry.count.mockResolvedValue(50);
 
       // Mock the oldest exceeded entries lookup
-      const oldestEntry = { id: 'oldest-entry-id' };
+      const oldestEntry = { id: 'oldest-entry-id', audio_key: null };
       tx.nameEntry.findMany.mockResolvedValue([oldestEntry]);
 
       // Try to update a name entry
@@ -544,10 +583,12 @@ describe('NameService', () => {
         where: { user_id: 'test-user', deleted_at: { not: null } },
         orderBy: { deleted_at: 'asc' },
         take: 1,
+        select: { id: true, audio_key: true },
       });
       expect(tx.nameEntry.deleteMany).toHaveBeenCalledWith({
         where: { id: { in: [oldestEntry.id] } },
       });
+      expect(storageService.delete).not.toHaveBeenCalled();
     });
 
     it('should cleanup entries when soft-deleted count exceeds the limit', async () => {
@@ -563,9 +604,9 @@ describe('NameService', () => {
 
       // Mock the oldest exceeded entries lookup
       const oldestEntries = [
-        { id: 'oldest-entry-1' },
-        { id: 'oldest-entry-2' },
-        { id: 'oldest-entry-3' },
+        { id: 'oldest-entry-1', audio_key: null },
+        { id: 'oldest-entry-2', audio_key: null },
+        { id: 'oldest-entry-3', audio_key: null },
       ];
       tx.nameEntry.findMany.mockResolvedValue(oldestEntries);
 
@@ -577,10 +618,457 @@ describe('NameService', () => {
         where: { user_id: 'test-user', deleted_at: { not: null } },
         orderBy: { deleted_at: 'asc' },
         take: 3,
+        select: { id: true, audio_key: true },
       });
       expect(tx.nameEntry.deleteMany).toHaveBeenCalledWith({
         where: { id: { in: oldestEntries.map((entry) => entry.id) } },
       });
+    });
+
+    it('should delete orphaned R2 objects when their audio_key has no remaining references', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count at the limit
+      tx.nameEntry.count.mockResolvedValue(50);
+
+      // Mock the oldest exceeded entries with an audio_key
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest-entry-id', audio_key: 'orphan-key' },
+      ]);
+
+      // Mock count for 'orphan-key' to be 0
+      prisma.nameEntry.count.mockResolvedValue(0);
+
+      // Try to update a name entry
+      await service.update('test-user', 'test-entry-id', { value: 'new name' });
+
+      // Check ref count was queried and R2 delete was called
+      expect(prisma.nameEntry.count).toHaveBeenCalledWith({
+        where: { audio_key: 'orphan-key' },
+      });
+      expect(storageService.delete).toHaveBeenCalledWith('orphan-key');
+    });
+
+    it('should NOT delete R2 objects that are still referenced by other entries', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count at the limit
+      tx.nameEntry.count.mockResolvedValue(50);
+
+      // Mock the oldest exceeded entries with an audio_key that is shared
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest-entry-id', audio_key: 'shared-key' },
+      ]);
+
+      // Mock count for 'shared-key' to be greater than 0
+      prisma.nameEntry.count.mockResolvedValue(2);
+
+      // Try to update a name entry
+      await service.update('test-user', 'test-entry-id', { value: 'new name' });
+
+      // Check R2 delete was not called because the key is still referenced
+      expect(storageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('should dedupe audio_keys before checking orphan status', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count exceeding the limit
+      tx.nameEntry.count.mockResolvedValue(52);
+
+      // Mock oldest entries all sharing the same audio_key
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest-1', audio_key: 'dup-key' },
+        { id: 'oldest-2', audio_key: 'dup-key' },
+        { id: 'oldest-3', audio_key: 'dup-key' },
+      ]);
+
+      // Mock count for 'dup-key' to be 0
+      prisma.nameEntry.count.mockResolvedValue(0);
+
+      // Try to update a name entry
+      await service.update('test-user', 'test-entry-id', { value: 'new name' });
+
+      // Check ref count was checked once and delete was called once
+      expect(prisma.nameEntry.count).toHaveBeenCalledTimes(1);
+      expect(storageService.delete).toHaveBeenCalledTimes(1);
+      expect(storageService.delete).toHaveBeenCalledWith('dup-key');
+    });
+
+    it('should propagate errors from R2 delete during cleanup', async () => {
+      // Mock name entry lookup to return a name entry
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count at the limit
+      tx.nameEntry.count.mockResolvedValue(50);
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest', audio_key: 'flaky-key' },
+      ]);
+
+      // Mock count for 'flaky-key' to be 0
+      prisma.nameEntry.count.mockResolvedValue(0);
+
+      // Mock R2 delete to fail
+      storageService.delete.mockRejectedValue(new Error('R2 down'));
+
+      // Try to update and expect it to throw
+      await expect(
+        service.update('test-user', 'test-entry-id', { value: 'new name' }),
+      ).rejects.toThrow('R2 down');
+
+      // Check that R2 delete was called
+      expect(storageService.delete).toHaveBeenCalledWith('flaky-key');
+    });
+  });
+
+  describe('upload audio', () => {
+    const mockFile = (overrides = {}) =>
+      ({
+        buffer: Buffer.from('test-audio-bytes'),
+        mimetype: 'audio/mpeg',
+        originalname: 'test.mp3',
+        size: 100,
+        ...overrides,
+      }) as Express.Multer.File;
+
+    it('should throw NotFoundException when the name entry does not exist', async () => {
+      // Mock name entry lookup to return null
+      prisma.nameEntry.findUnique.mockResolvedValue(null);
+
+      // Call uploadAudio with a non-existent name entry and expect it to throw
+      await expect(
+        service.uploadAudio(
+          'test-user',
+          '00000000-0000-0000-0000-000000000000',
+          mockFile(),
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      // Check that upload, tx and create were not called
+      expect(storageService.upload).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+    });
+
+    it('should upload the file, soft-delete the old entry, create a new one and return the signed url', async () => {
+      // Mock name entry lookup
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      tx.nameEntry.create.mockImplementation(
+        (args: { data: { audio_key: string } }) =>
+          Promise.resolve({
+            ...nameEntryData,
+            audio_key: args.data.audio_key,
+          }),
+      );
+
+      // Call uploadAudio with the mock data
+      const result = await service.uploadAudio(
+        'test-user',
+        nameEntryData.id,
+        mockFile({ mimetype: 'audio/mpeg' }),
+      );
+
+      // Check that upload was called with the correct data
+      expect(storageService.upload).toHaveBeenCalledTimes(1);
+      const [key, buffer, mimetype] = storageService.upload.mock.calls[0] as [
+        string,
+        Buffer,
+        string,
+      ];
+      expect(key).toMatch(
+        new RegExp(`^audio/test-user/${nameEntryData.id}/.+\\.mp3$`),
+      );
+      expect(Buffer.isBuffer(buffer)).toBe(true);
+      expect(mimetype).toBe('audio/mpeg');
+
+      // Check that the old entry was soft-deleted
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: nameEntryData.id },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+
+      // Check that a new entry was created with the new audio_key
+      expect(tx.nameEntry.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            user_id: 'test-user',
+            value: nameEntryData.value,
+            charset: nameEntryData.charset,
+            audio_key: key,
+            context_id: nameEntryData.context_id,
+          },
+        }),
+      );
+
+      // Check that the result includes the signed url for the newly uploaded key
+      expect(result.audio_url).toBe(`signed-url:${key}`);
+    });
+
+    it('should map known mimetypes to their extension', async () => {
+      // Mock name entry lookup
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue({
+        ...nameEntryData,
+        audio_key: 'k',
+      });
+
+      // Call uploadAudio
+      await service.uploadAudio(
+        'test-user',
+        nameEntryData.id,
+        mockFile({ mimetype: 'audio/webm' }),
+      );
+
+      // Check that upload was called with the correct data
+      const [key] = storageService.upload.mock.calls[0] as [string];
+      expect(key).toMatch(/\.webm$/);
+    });
+
+    it('should default to .bin for unknown mimetypes', async () => {
+      // Mock name entry lookup
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue({
+        ...nameEntryData,
+        audio_key: 'k',
+      });
+
+      // Call uploadAudio
+      await service.uploadAudio(
+        'test-user',
+        nameEntryData.id,
+        mockFile({ mimetype: 'audio/ogg' }),
+      );
+
+      // Check that upload was called with the correct data
+      const [key] = storageService.upload.mock.calls[0] as [string];
+      expect(key).toMatch(/\.bin$/);
+    });
+
+    it('should cleanup orphaned R2 objects when max soft-deleted is reached', async () => {
+      // Mock name entry lookup
+      const nameEntryData = mockNameEntry();
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue(nameEntryData);
+
+      // Mock count at the limit
+      tx.nameEntry.count.mockResolvedValue(50);
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest', audio_key: 'orphan-key' },
+      ]);
+
+      // Mock count for 'orphan-key' to be 0
+      prisma.nameEntry.count.mockResolvedValue(0);
+
+      // Call uploadAudio
+      await service.uploadAudio(
+        'test-user',
+        nameEntryData.id,
+        mockFile({ mimetype: 'audio/mpeg' }),
+      );
+
+      // Check R2 delete was called for the orphaned key
+      expect(storageService.delete).toHaveBeenCalledWith('orphan-key');
+    });
+  });
+
+  describe('remove audio', () => {
+    it('should throw NotFoundException when the name entry does not exist', async () => {
+      // Mock name entry lookup to return null
+      prisma.nameEntry.findUnique.mockResolvedValue(null);
+
+      // Call removeAudio with a non-existent name entry and expect it to throw
+      await expect(
+        service.removeAudio(
+          'test-user',
+          '00000000-0000-0000-0000-000000000000',
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      // Check that tx, create and delete were not called
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+      expect(storageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('should be idempotent when the entry already has no audio', async () => {
+      // Mock name entry lookup with audio_key null
+      const nameEntryData = {
+        id: 'test-entry-id',
+        value: 'test',
+        charset: 'testcharset',
+        audio_key: null,
+        context_id: 'test-context-id',
+        context: {
+          name: 'Context',
+          key: 'context',
+          description: 'Description',
+        },
+      };
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Call removeAudio
+      const result = await service.removeAudio('test-user', 'test-entry-id');
+
+      // Check no tx, create or update was called
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+
+      // Check result includes audio_url null
+      expect(result).toEqual({
+        id: nameEntryData.id,
+        value: nameEntryData.value,
+        charset: nameEntryData.charset,
+        audio_key: null,
+        context: nameEntryData.context,
+        audio_url: null,
+      });
+    });
+
+    it('should soft-delete the old entry, create a new one with audio_key null and return it', async () => {
+      // Mock name entry lookup with an audio_key
+      const nameEntryData = {
+        id: 'test-entry-id',
+        value: 'test',
+        charset: 'testcharset',
+        audio_key: 'existing-key',
+        context_id: 'test-context-id',
+        context: {
+          name: 'Context',
+          key: 'context',
+          description: 'Description',
+        },
+      };
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+
+      // Mock the transaction create return value
+      const createdEntry = {
+        id: 'new-entry-id',
+        value: nameEntryData.value,
+        charset: nameEntryData.charset,
+        audio_key: null,
+        context: nameEntryData.context,
+      };
+      tx.nameEntry.create.mockResolvedValue(createdEntry);
+
+      // Call removeAudio
+      const result = await service.removeAudio('test-user', 'test-entry-id');
+
+      // Check that the old entry was soft-deleted
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: nameEntryData.id },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+
+      // Check that the new entry was created with audio_key null
+      expect(tx.nameEntry.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            user_id: 'test-user',
+            value: nameEntryData.value,
+            charset: nameEntryData.charset,
+            audio_key: null,
+            context_id: nameEntryData.context_id,
+          },
+        }),
+      );
+
+      // Check the returned entry includes audio_url null
+      expect(result).toEqual({ ...createdEntry, audio_url: null });
+    });
+
+    it('should NOT delete the R2 object of the removed audio since it is still referenced by the soft-deleted entry (history)', async () => {
+      // Mock name entry lookup with an audio_key
+      const nameEntryData = {
+        id: 'test-entry-id',
+        value: 'test',
+        charset: 'testcharset',
+        audio_key: 'existing-key',
+        context_id: 'test-context-id',
+        context: {
+          name: 'Context',
+          key: 'context',
+          description: 'Description',
+        },
+      };
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue({
+        id: 'new-id',
+        value: nameEntryData.value,
+        charset: nameEntryData.charset,
+        audio_key: null,
+        context: nameEntryData.context,
+      });
+
+      // No hard-deleted entries this time
+      tx.nameEntry.count.mockResolvedValue(0);
+
+      // Call removeAudio
+      await service.removeAudio('test-user', 'test-entry-id');
+
+      // Check the R2 object was not deleted
+      expect(storageService.delete).not.toHaveBeenCalled();
+    });
+
+    it('should cleanup orphaned R2 objects when max soft-deleted is reached', async () => {
+      // Mock name entry lookup with an audio_key
+      const nameEntryData = {
+        id: 'test-entry-id',
+        value: 'test',
+        charset: 'testcharset',
+        audio_key: 'existing-key',
+        context_id: 'test-context-id',
+        context: {
+          name: 'Context',
+          key: 'context',
+          description: 'Description',
+        },
+      };
+      prisma.nameEntry.findUnique.mockResolvedValue(nameEntryData);
+      tx.nameEntry.create.mockResolvedValue({
+        id: 'new-id',
+        value: nameEntryData.value,
+        charset: nameEntryData.charset,
+        audio_key: null,
+        context: nameEntryData.context,
+      });
+
+      // Mock count at the limit; oldest entry has an orphaned audio_key
+      tx.nameEntry.count.mockResolvedValue(50);
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest', audio_key: 'orphan-key' },
+      ]);
+
+      // Mock count for 'orphan-key' to be 0
+      prisma.nameEntry.count.mockResolvedValue(0);
+
+      // Call removeAudio
+      await service.removeAudio('test-user', 'test-entry-id');
+
+      // Check R2 delete was called for the orphaned key
+      expect(storageService.delete).toHaveBeenCalledWith('orphan-key');
     });
   });
 });

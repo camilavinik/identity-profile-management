@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { NameController } from './name.controller';
 import { NameService } from './name.service';
 import type { JwtUser } from 'src/auth/current-user.decorator';
@@ -10,8 +11,19 @@ describe('NameController', () => {
     query: jest.Mock;
     queryHistory: jest.Mock;
     update: jest.Mock;
+    uploadAudio: jest.Mock;
+    removeAudio: jest.Mock;
   };
   const mockUser: JwtUser = { sub: 'test-user-id', email: 'test@test.com' };
+
+  const mockFile = (overrides: Partial<Express.Multer.File> = {}) =>
+    ({
+      buffer: Buffer.from('fake-audio'),
+      mimetype: 'audio/mpeg',
+      originalname: 'test.mp3',
+      size: 100,
+      ...overrides,
+    }) as Express.Multer.File;
 
   beforeEach(async () => {
     nameService = {
@@ -19,6 +31,8 @@ describe('NameController', () => {
       query: jest.fn(),
       queryHistory: jest.fn(),
       update: jest.fn(),
+      uploadAudio: jest.fn(),
+      removeAudio: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -112,6 +126,77 @@ describe('NameController', () => {
         mockUser.sub,
         'entry-id',
         dto,
+      );
+      expect(result).toBe(updatedEntry);
+    });
+  });
+
+  describe('uploadAudio', () => {
+    it('should throw BadRequestException when no file is provided', () => {
+      // Call uploadAudio with no file and expect to throw
+      expect(() =>
+        controller.uploadAudio(
+          mockUser,
+          'entry-id',
+          undefined as unknown as Express.Multer.File,
+        ),
+      ).toThrow(BadRequestException);
+
+      // Check that uploadAudio from nameService was not called
+      expect(nameService.uploadAudio).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when the mimetype is not allowed', () => {
+      // Call uploadAudio with an invalid mimetype and expect to throw
+      expect(() =>
+        controller.uploadAudio(
+          mockUser,
+          'entry-id',
+          mockFile({ mimetype: 'image/png' }),
+        ),
+      ).toThrow(BadRequestException);
+
+      // Check that uploadAudio from nameService was not called
+      expect(nameService.uploadAudio).not.toHaveBeenCalled();
+    });
+
+    it('should delegate to nameService.uploadAudio and return its result', async () => {
+      // Mock uploadAudio response
+      const uploadedEntry = {
+        id: 'entry-id',
+        audio_url: 'signed-url:some-key',
+      };
+      nameService.uploadAudio.mockResolvedValue(uploadedEntry);
+
+      const file = mockFile({ mimetype: 'audio/webm' });
+      const result = await controller.uploadAudio(mockUser, 'entry-id', file);
+
+      // Check delegation and return
+      expect(nameService.uploadAudio).toHaveBeenCalledWith(
+        mockUser.sub,
+        'entry-id',
+        file,
+      );
+      expect(result).toBe(uploadedEntry);
+    });
+  });
+
+  describe('removeAudio', () => {
+    it('should call nameService.removeAudio with the user id and entry id and return its result', async () => {
+      // Mock removeAudio response
+      const updatedEntry = {
+        id: 'new-entry-id',
+        audio_url: null,
+      };
+      nameService.removeAudio.mockResolvedValue(updatedEntry);
+
+      // Call removeAudio
+      const result = await controller.removeAudio(mockUser, 'entry-id');
+
+      // Check delegation and return
+      expect(nameService.removeAudio).toHaveBeenCalledWith(
+        mockUser.sub,
+        'entry-id',
       );
       expect(result).toBe(updatedEntry);
     });

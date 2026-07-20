@@ -44,7 +44,7 @@ model NameEntry {
 
   value          String?
   charset        String
-  audio_url      String?
+  audio_key      String?
   created_at     DateTime @default(now())
   deleted_at     DateTime?
 

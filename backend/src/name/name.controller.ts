@@ -6,6 +6,11 @@ import {
   Query,
   Param,
   Patch,
+  Delete,
+  UseInterceptors,
+  BadRequestException,
+  ParseUUIDPipe,
+  UploadedFile,
 } from '@nestjs/common';
 import { NameService } from './name.service';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -14,6 +19,8 @@ import { CreateNameEntryDto } from './dto/create-name-entry.dto';
 import { QueryNameEntryDto } from './dto/query-name-entry.dto';
 import { HistoryQueryDto } from './dto/history-query.dto';
 import { UpdateNameEntryDto } from './dto/update-name-entry.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import 'multer';
 
 @Controller('me/name')
 export class NameController {
@@ -41,5 +48,41 @@ export class NameController {
     @Body() dto: UpdateNameEntryDto,
   ) {
     return this.nameService.update(user.sub, id, dto);
+  }
+
+  @Post(':nameId/audio')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 1024 * 1024 * 5 }, // 5MB
+    }),
+  )
+  uploadAudio(
+    @CurrentUser() user: JwtUser,
+    @Param('nameId', ParseUUIDPipe) nameId: string,
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Audio file is required');
+    }
+    const allowedMimeTypes = [
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/mp4',
+      'audio/wav',
+      'audio/webm',
+      'audio/ogg',
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(`Invalid file type: ${file.mimetype}`);
+    }
+    return this.nameService.uploadAudio(user.sub, nameId, file);
+  }
+
+  @Delete(':nameId/audio')
+  removeAudio(
+    @CurrentUser() user: JwtUser,
+    @Param('nameId', ParseUUIDPipe) nameId: string,
+  ) {
+    return this.nameService.removeAudio(user.sub, nameId);
   }
 }
