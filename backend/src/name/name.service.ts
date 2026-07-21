@@ -64,7 +64,7 @@ export class NameService {
     return this.addAudioUrl(created);
   }
 
-  async query(userId: string, contextKey?: string) {
+  async query(userId: string, contextKey?: string, includeEmail = true) {
     // Validate context key if provided
     let context: Context | null = null;
     if (contextKey) {
@@ -89,15 +89,25 @@ export class NameService {
             description: true,
           },
         },
-        user: {
-          select: {
-            email: true,
+        ...(includeEmail && {
+          user: {
+            select: {
+              email: true,
+            },
           },
-        },
+        }),
       },
     });
 
     return this.addAudioUrls(entries);
+  }
+
+  async queryByUser(userId: string, contextKey?: string) {
+    // Validate the target user exists
+    await this.validateUser(userId);
+
+    // Delegate to query without exposing the target user's email
+    return this.query(userId, contextKey, false);
   }
 
   async update(userId: string, id: string, dto: UpdateNameEntryDto) {
@@ -207,6 +217,16 @@ export class NameService {
     }
 
     return context;
+  }
+
+  private async validateUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with id '${userId}' not found`);
+    }
   }
 
   private async enforceMaxSoftDeletedNameEntries(
