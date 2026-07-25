@@ -25,7 +25,9 @@ export async function apiFetch<T>(
 
   // Fetch
   const res = await fetch(`/api${path}`, { ...options, headers });
-  const body = (await res.json().catch(() => null)) as { message?: string } | null;
+  const body = (await res.json().catch(() => null)) as {
+    message?: string | string[];
+  } | null;
 
   // If unauthorized, logout and redirect to login
   if (res.status === 401) {
@@ -33,8 +35,13 @@ export async function apiFetch<T>(
     window.location.href = '/login';
   }
 
-  // If not ok, throw error
-  if (!res.ok) throw new ApiError(res.status, body?.message ?? res.statusText);
+  // If not ok, throw error (NestJS validation errors can be an array)
+  if (!res.ok) {
+    const message = Array.isArray(body?.message)
+      ? body.message.join(', ')
+      : (body?.message ?? res.statusText);
+    throw new ApiError(res.status, message);
+  }
 
   // Return body
   return body as T;

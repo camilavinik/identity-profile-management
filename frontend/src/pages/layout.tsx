@@ -1,0 +1,74 @@
+import type { ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+type Props = {
+  title: string;
+  cta: string;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  children: ReactNode;
+  disabledSubmit: boolean;
+  error?: string | null;
+};
+
+export function Layout({
+  title,
+  cta,
+  onSubmit,
+  children,
+  disabledSubmit,
+  error,
+}: Props) {
+  const location = useLocation();
+  const isSignup = location.pathname === '/signup';
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-3">
+      <div className="card w-full max-w-md shadow-2xl">
+        <div className="card-body gap-4">
+          <div role="tablist" className="tabs tabs-box self-center">
+            <input
+              type="radio"
+              name="auth-tabs"
+              role="tab"
+              aria-label="Sign up"
+              className="tab"
+              checked={isSignup}
+              onChange={() => navigate('/signup')}
+            />
+            <input
+              type="radio"
+              name="auth-tabs"
+              role="tab"
+              aria-label="Sign in"
+              className="tab"
+              checked={!isSignup}
+              onChange={() => navigate('/login')}
+            />
+          </div>
+
+          <h1 className="card-title text-2xl">{title}</h1>
+
+          {children}
+
+          {error && (
+            <div role="alert" className="alert alert-error alert-soft text-sm">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-neutral w-full"
+            onClick={(e) =>
+              onSubmit(e as unknown as React.FormEvent<HTMLFormElement>)
+            }
+            disabled={disabledSubmit}
+          >
+            {cta}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
