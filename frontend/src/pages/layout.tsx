@@ -25,7 +25,7 @@ export function Layout({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3">
-      <div className="card w-full max-w-md shadow-2xl">
+      <div className="card w-full max-w-md shadow-xs">
         <div className="card-body gap-4">
           <div role="tablist" className="tabs tabs-box self-center">
             <input
@@ -56,7 +56,7 @@ export function Layout({
 
           <button
             type="submit"
-            className="btn btn-neutral w-full"
+            className="btn btn-neutral w-full shadow-xs"
             onClick={(e) =>
               onSubmit(e as unknown as React.FormEvent<HTMLFormElement>)
             }

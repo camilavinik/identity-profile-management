@@ -28,7 +28,7 @@ export function NameHistory() {
   const [filteredEntries, filterProps] = useContextFilter(entries);
 
   return (
-    <div className="card bg-base-100 shadow-sm">
+    <div className="card bg-base-100 shadow-xs">
       <div className="card-body gap-0">
         <h3 className="card-title">History</h3>
 

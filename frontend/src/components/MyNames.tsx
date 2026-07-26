@@ -6,6 +6,7 @@ import { ContextFilter } from './ContextFilter';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { ErrorAlert } from './ErrorAlert';
 import { AudioPlayer } from './AudioPlayer';
+import { NameFormModal, type NameFormData } from './NameFormModal';
 
 function NameCard({
   name,
@@ -19,7 +20,7 @@ function NameCard({
   }
 
   return (
-    <div className="card bg-base-100 shadow-sm">
+    <div className="card bg-base-100 shadow-xs">
       <div className="card-body">
         <div className="flex items-center gap-2">
           <ContextCharsetBadge context={name.context.name} variant="soft">
@@ -43,10 +44,11 @@ function NameCard({
 }
 
 export function MyNames() {
-  const { fetchCurrentNames } = useNames();
+  const { fetchCurrentNames, createName } = useNames();
   const [names, setNames] = useState<NameEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCurrentNames()
@@ -57,12 +59,29 @@ export function MyNames() {
 
   const [filteredNames, filterProps] = useContextFilter(names);
 
+  const handleAddName = async (data: NameFormData) => {
+    await createName({
+      context: data.context,
+      charset: data.charset,
+      value: data.value.trim() || undefined,
+      audioFile: data.audioFile,
+    });
+
+    // Fetch updated names
+    const updated = await fetchCurrentNames();
+    setNames(updated);
+  };
+
   return (
     <div>
       {/* Title and Add Name Button*/}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">My names</h2>
-        <button className="btn btn-neutral btn-sm">
+        <button
+          type="button"
+          className="btn btn-neutral btn-sm shadow-xs"
+          onClick={() => setModalOpen(true)}
+        >
           <PlusIcon /> Add Name
         </button>
       </div>
@@ -110,6 +129,13 @@ export function MyNames() {
           </ul>
         )}
       </div>
+
+      {/* Name modal */}
+      <NameFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleAddName}
+      />
     </div>
   );
 }

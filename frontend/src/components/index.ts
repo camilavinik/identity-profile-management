@@ -6,6 +6,8 @@ import { ContextFilter } from './ContextFilter';
 import { ErrorAlert } from './ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer';
+import { Modal } from './Modal';
+import { NameFormModal } from './NameFormModal';
 
 export {
   Header,
@@ -16,4 +18,6 @@ export {
   ErrorAlert,
   EmptyStateAlert,
   AudioPlayer,
+  Modal,
+  NameFormModal,
 };

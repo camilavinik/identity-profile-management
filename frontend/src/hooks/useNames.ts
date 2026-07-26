@@ -38,6 +38,13 @@ export type Context = {
 // Cache contexts for re-use
 let contextsPromise: Promise<Context[]> | null = null;
 
+export type CreateNamePayload = {
+  context: string;
+  charset: string;
+  value?: string;
+  audioFile?: File | null;
+};
+
 export function useNames() {
   const fetchCurrentNames = useCallback(
     () => apiFetch<NameEntry[]>('/me/name'),
@@ -56,8 +63,37 @@ export function useNames() {
         throw err;
       });
     }
+
     return contextsPromise;
   }, []);
 
-  return { fetchCurrentNames, fetchHistory, fetchContexts };
+  const uploadAudio = useCallback((nameId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+
+    return apiFetch<NameEntry>(`/me/name/${nameId}/audio`, {
+      method: 'POST',
+      body: form,
+    });
+  }, []);
+
+  const createName = useCallback(
+    async ({
+      context,
+      charset,
+      value,
+      audioFile,
+    }: CreateNamePayload): Promise<NameEntry> => {
+      const created = await apiFetch<NameEntry>('/me/name', {
+        method: 'POST',
+        body: JSON.stringify({ context, charset, value }),
+      });
+
+      if (audioFile) return uploadAudio(created.id, audioFile);
+      return created;
+    },
+    [uploadAudio],
+  );
+
+  return { fetchCurrentNames, fetchHistory, fetchContexts, createName };
 }

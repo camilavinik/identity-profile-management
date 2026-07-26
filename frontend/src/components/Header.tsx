@@ -4,7 +4,7 @@ export function Header() {
   const { logout } = useAuth();
 
   return (
-    <header className="navbar bg-base-100 shadow-sm">
+    <header className="navbar bg-base-100 shadow-xs">
       <div className="flex-1">
         <h1 className="text-xl">Identity Profile Management</h1>
       </div>
@@ -28,7 +28,7 @@ export function Header() {
           </div>
           <ul
             tabIndex={-1}
-            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xs"
           >
             <li>
               <button onClick={logout}>Log Out</button>
