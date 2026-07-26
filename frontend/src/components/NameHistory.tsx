@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
 import {
   useContextFilter,
-  useNames,
   type HistoryEntry,
   type HistoryPage,
 } from '../hooks';
@@ -11,19 +9,15 @@ import { EmptyStateAlert } from './EmptyStateAlert';
 import { ErrorAlert } from './ErrorAlert';
 import { AudioPlayer } from './AudioPlayer';
 
-export function NameHistory() {
-  const { fetchHistory } = useNames();
-  const [history, setHistory] = useState<HistoryPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchHistory()
-      .then(setHistory)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [fetchHistory]);
-
+export function NameHistory({
+  history,
+  loading,
+  error,
+}: {
+  history: HistoryPage | null;
+  loading: boolean;
+  error: string | null;
+}) {
   const entries = history?.data ?? [];
   const [filteredEntries, filterProps] = useContextFilter(entries);
 

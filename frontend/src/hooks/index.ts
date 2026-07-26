@@ -7,5 +7,6 @@ export type {
   HistoryPage,
   Context,
   CreateNamePayload,
+  UpdateNamePayload,
 } from './useNames';
 export type { ContextFilterProps } from './useContextFilter';

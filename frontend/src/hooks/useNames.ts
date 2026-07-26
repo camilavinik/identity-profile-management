@@ -45,6 +45,14 @@ export type CreateNamePayload = {
   audioFile?: File | null;
 };
 
+export type UpdateNamePayload = {
+  context?: string;
+  charset?: string;
+  value?: string;
+  audioFile?: File | null;
+  removeAudio?: boolean;
+};
+
 export function useNames() {
   const fetchCurrentNames = useCallback(
     () => apiFetch<NameEntry[]>('/me/name'),
@@ -77,6 +85,12 @@ export function useNames() {
     });
   }, []);
 
+  const deleteAudio = useCallback((nameId: string) => {
+    return apiFetch<NameEntry>(`/me/name/${nameId}/audio`, {
+      method: 'DELETE',
+    });
+  }, []);
+
   const createName = useCallback(
     async ({
       context,
@@ -95,5 +109,29 @@ export function useNames() {
     [uploadAudio],
   );
 
-  return { fetchCurrentNames, fetchHistory, fetchContexts, createName };
+  const updateName = useCallback(
+    async (
+      id: string,
+      { context, charset, value, audioFile, removeAudio }: UpdateNamePayload,
+    ): Promise<NameEntry> => {
+      const updated = await apiFetch<NameEntry>(`/me/name/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ context, charset, value }),
+      });
+
+      // A new file replaces existing audio
+      if (audioFile) return uploadAudio(updated.id, audioFile);
+      if (removeAudio) return deleteAudio(updated.id);
+      return updated;
+    },
+    [uploadAudio, deleteAudio],
+  );
+
+  return {
+    fetchCurrentNames,
+    fetchHistory,
+    fetchContexts,
+    createName,
+    updateName,
+  };
 }

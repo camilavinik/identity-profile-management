@@ -8,6 +8,7 @@ import { EmptyStateAlert } from './EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer';
 import { Modal } from './Modal';
 import { NameFormModal } from './NameFormModal';
+import { Options } from './Options';
 
 export {
   Header,
@@ -20,4 +21,5 @@ export {
   AudioPlayer,
   Modal,
   NameFormModal,
+  Options,
 };

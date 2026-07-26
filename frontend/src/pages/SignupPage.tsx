@@ -1,6 +1,6 @@
+import { KeyRound, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../auth';
-import { EmailIcon, KeyIcon } from '../icons';
 import { ApiError } from '../lib/api';
 import { Layout } from './layout';
 
@@ -44,7 +44,7 @@ export function SignupPage() {
     >
       <div>
         <label className="input validator w-full">
-          <EmailIcon />
+          <Mail className="size-4 opacity-50" />
           <input
             type="email"
             placeholder="mail@site.com"
@@ -63,7 +63,7 @@ export function SignupPage() {
 
       <div>
         <label className="input validator w-full">
-          <KeyIcon />
+          <KeyRound className="size-4 opacity-50" />
           <input
             type="password"
             placeholder="Password"
@@ -84,7 +84,7 @@ export function SignupPage() {
         <label
           className={`input validator w-full ${passwordMismatch ? 'input-error' : ''}`}
         >
-          <KeyIcon />
+          <KeyRound className="size-4 opacity-50" />
           <input
             type="password"
             placeholder="Confirm Password"

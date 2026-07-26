@@ -1,5 +1,5 @@
+import { Pause, Play, Square } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { PauseIcon, PlayIcon, StopIcon } from '../icons';
 
 export function AudioPlayer({
   audioUrl,
@@ -78,7 +78,7 @@ export function AudioPlayer({
 
   return (
     <div
-      className={`badge badge-neutral badge-soft gap-1.5 ${size === 'xs' ? 'badge-sm' : ''}`}
+      className={`badge badge-neutral badge-soft ${size === 'xs' ? 'badge-sm gap-1.5' : 'gap-2'}`}
     >
       <button
         type="button"
@@ -87,7 +87,9 @@ export function AudioPlayer({
         className={iconButton}
         aria-label="Restart audio"
       >
-        <StopIcon />
+        <Square
+          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+        />
       </button>
       <button
         type="button"
@@ -96,7 +98,9 @@ export function AudioPlayer({
         className={iconButton}
         aria-label="Play audio"
       >
-        <PlayIcon />
+        <Play
+          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+        />
       </button>
       <button
         type="button"
@@ -105,7 +109,9 @@ export function AudioPlayer({
         className={iconButton}
         aria-label="Pause audio"
       >
-        <PauseIcon />
+        <Pause
+          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+        />
       </button>
     </div>
   );

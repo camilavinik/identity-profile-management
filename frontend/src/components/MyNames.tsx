@@ -1,19 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useContextFilter, useNames, type NameEntry } from '../hooks';
-import { PlusIcon } from '../icons';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import {
+  useContextFilter,
+  useNames,
+  type Context,
+  type NameEntry,
+} from '../hooks';
 import { ContextCharsetBadge } from './ContextCharsetBadge';
 import { ContextFilter } from './ContextFilter';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { ErrorAlert } from './ErrorAlert';
 import { AudioPlayer } from './AudioPlayer';
 import { NameFormModal, type NameFormData } from './NameFormModal';
+import { Options } from './Options';
 
 function NameCard({
   name,
   skeleton = false,
+  onEdit,
 }: {
   name: NameEntry;
   skeleton?: boolean;
+  onEdit?: () => void;
 }) {
   if (skeleton) {
     return <div className="skeleton w-full h-26" />;
@@ -22,14 +30,25 @@ function NameCard({
   return (
     <div className="card bg-base-100 shadow-xs">
       <div className="card-body">
-        <div className="flex items-center gap-2">
-          <ContextCharsetBadge context={name.context.name} variant="soft">
-            {name.context.name.toUpperCase()}
-          </ContextCharsetBadge>
-          <ContextCharsetBadge context={name.context.name} variant="dash">
-            {name.charset.toUpperCase()}
-          </ContextCharsetBadge>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ContextCharsetBadge context={name.context.name} variant="soft">
+              {name.context.name.toUpperCase()}
+            </ContextCharsetBadge>
+            <ContextCharsetBadge context={name.context.name} variant="dash">
+              {name.charset.toUpperCase()}
+            </ContextCharsetBadge>
+          </div>
+
+          <Options menuClassName="w-32">
+            <li>
+              <button type="button" onClick={onEdit}>
+                Edit
+              </button>
+            </li>
+          </Options>
         </div>
+
         <div className="w-full flex items-center justify-between gap-2">
           {name.value ? (
             <p className="text-lg">{name.value}</p>
@@ -43,19 +62,33 @@ function NameCard({
   );
 }
 
-export function MyNames() {
-  const { fetchCurrentNames, createName } = useNames();
-  const [names, setNames] = useState<NameEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+function getEditInitialValues(
+  name: NameEntry,
+  contexts: Context[],
+): Partial<NameFormData> {
+  const contextKey =
+    contexts.find((c) => c.name === name.context.name)?.key ?? '';
+  return {
+    context: contextKey,
+    charset: name.charset,
+    value: name.value ?? '',
+  };
+}
 
-  useEffect(() => {
-    fetchCurrentNames()
-      .then(setNames)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [fetchCurrentNames]);
+export function MyNames({
+  names,
+  loading,
+  error,
+  refresh,
+}: {
+  names: NameEntry[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => void;
+}) {
+  const { createName, updateName } = useNames();
+  const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<NameEntry | null>(null);
 
   const [filteredNames, filterProps] = useContextFilter(names);
 
@@ -66,10 +99,20 @@ export function MyNames() {
       value: data.value.trim() || undefined,
       audioFile: data.audioFile,
     });
+    refresh();
+  };
 
-    // Fetch updated names
-    const updated = await fetchCurrentNames();
-    setNames(updated);
+  const handleEditName = async (data: NameFormData) => {
+    if (editing) {
+      await updateName(editing.id, {
+        context: data.context,
+        charset: data.charset,
+        value: data.value.trim(),
+        audioFile: data.audioFile,
+        removeAudio: data.removeAudio,
+      });
+      refresh();
+    }
   };
 
   return (
@@ -80,9 +123,9 @@ export function MyNames() {
         <button
           type="button"
           className="btn btn-neutral btn-sm shadow-xs"
-          onClick={() => setModalOpen(true)}
+          onClick={() => setAddOpen(true)}
         >
-          <PlusIcon /> Add Name
+          <Plus className="size-4" /> Add Name
         </button>
       </div>
 
@@ -123,19 +166,32 @@ export function MyNames() {
           <ul className="flex flex-col gap-3">
             {filteredNames.map((name) => (
               <li key={name.id}>
-                <NameCard name={name} />
+                <NameCard name={name} onEdit={() => setEditing(name)} />
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* Name modal */}
+      {/* Add name modal */}
       <NameFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
         onSubmit={handleAddName}
       />
+
+      {/* Edit name modal */}
+      {editing && (
+        <NameFormModal
+          open
+          onClose={() => setEditing(null)}
+          onSubmit={handleEditName}
+          initialValues={getEditInitialValues(editing, filterProps.contexts)}
+          currentAudioUrl={editing.audio_url}
+          title="Edit name"
+          submitLabel="Save"
+        />
+      )}
     </div>
   );
 }

@@ -1,16 +1,67 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Header, MyNames, NameHistory } from '../components';
+import { useNames, type HistoryPage, type NameEntry } from '../hooks';
 
 export function Dashboard() {
+  const { fetchCurrentNames, fetchHistory } = useNames();
+
+  const [names, setNames] = useState<NameEntry[]>([]);
+  const [namesLoading, setNamesLoading] = useState(true);
+  const [namesError, setNamesError] = useState<string | null>(null);
+
+  const [history, setHistory] = useState<HistoryPage | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCurrentNames()
+      .then(setNames)
+      .catch((err: Error) => setNamesError(err.message))
+      .finally(() => setNamesLoading(false));
+  }, [fetchCurrentNames]);
+
+  useEffect(() => {
+    fetchHistory()
+      .then(setHistory)
+      .catch((err: Error) => setHistoryError(err.message))
+      .finally(() => setHistoryLoading(false));
+  }, [fetchHistory]);
+
+  const refreshAll = useCallback(() => {
+    setNamesLoading(true);
+    setNamesError(null);
+    fetchCurrentNames()
+      .then(setNames)
+      .catch((err: Error) => setNamesError(err.message))
+      .finally(() => setNamesLoading(false));
+
+    setHistoryLoading(true);
+    setHistoryError(null);
+    fetchHistory()
+      .then(setHistory)
+      .catch((err: Error) => setHistoryError(err.message))
+      .finally(() => setHistoryLoading(false));
+  }, [fetchCurrentNames, fetchHistory]);
+
   return (
     <div className="min-h-screen bg-base-200">
       <Header />
       <main className="container mx-auto p-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <MyNames />
+            <MyNames
+              names={names}
+              loading={namesLoading}
+              error={namesError}
+              refresh={refreshAll}
+            />
           </div>
           <div className="lg:col-span-1">
-            <NameHistory />
+            <NameHistory
+              history={history}
+              loading={historyLoading}
+              error={historyError}
+            />
           </div>
         </div>
       </main>
