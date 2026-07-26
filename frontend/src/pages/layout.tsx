@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ErrorAlert } from '../components';
 
 type Props = {
   title: string;
@@ -51,11 +52,7 @@ export function Layout({
 
           {children}
 
-          {error && (
-            <div role="alert" className="alert alert-error alert-soft text-sm">
-              <span>{error}</span>
-            </div>
-          )}
+          {error && <ErrorAlert content={error} />}
 
           <button
             type="submit"

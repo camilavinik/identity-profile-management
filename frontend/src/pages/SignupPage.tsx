@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth';
 import { EmailIcon, KeyIcon } from '../icons';
 import { ApiError } from '../lib/api';
 import { Layout } from './layout';

@@ -186,6 +186,7 @@ export class NameService {
           value: true,
           charset: true,
           audio_key: true,
+          created_at: true,
           deleted_at: true,
           context: { select: { name: true, description: true } },
         },
