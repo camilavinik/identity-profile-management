@@ -5,6 +5,7 @@ import { ContextCharsetBadge } from './ContextCharsetBadge';
 import { ContextFilter } from './ContextFilter';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { ErrorAlert } from './ErrorAlert';
+import { AudioPlayer } from './AudioPlayer';
 
 function NameCard({
   name,
@@ -28,11 +29,14 @@ function NameCard({
             {name.charset.toUpperCase()}
           </ContextCharsetBadge>
         </div>
-        {name.value ? (
-          <p className="text-lg">{name.value}</p>
-        ) : (
-          <p className="text-gray-500 italic">No value</p>
-        )}
+        <div className="w-full flex items-center justify-between gap-2">
+          {name.value ? (
+            <p className="text-lg">{name.value}</p>
+          ) : (
+            <p className="text-gray-500 italic">No value</p>
+          )}
+          <AudioPlayer audioUrl={name.audio_url} size="sm" />
+        </div>
       </div>
     </div>
   );

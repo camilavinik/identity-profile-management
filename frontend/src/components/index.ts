@@ -5,6 +5,7 @@ import { ContextCharsetBadge } from './ContextCharsetBadge';
 import { ContextFilter } from './ContextFilter';
 import { ErrorAlert } from './ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert';
+import { AudioPlayer } from './AudioPlayer';
 
 export {
   Header,
@@ -14,4 +15,5 @@ export {
   ContextFilter,
   ErrorAlert,
   EmptyStateAlert,
+  AudioPlayer,
 };
