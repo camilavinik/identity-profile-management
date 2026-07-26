@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import {
   useContextFilter,
   type HistoryEntry,
@@ -24,7 +25,16 @@ export function NameHistory({
   return (
     <div className="card bg-base-100 shadow-xs">
       <div className="card-body gap-0">
-        <h3 className="card-title">History</h3>
+        <h3 className="card-title">
+          History
+          <span className="tooltip tooltip-right">
+            <span className="tooltip-content max-w-60 text-xs">
+              When you change a name, the previous one is saved here. Only the
+              50 most recent entries are stored.
+            </span>
+            <Info className="size-4 opacity-50" />
+          </span>
+        </h3>
 
         {/* Filters */}
         <div className="mt-2">
