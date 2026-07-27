@@ -77,11 +77,13 @@ function getEditInitialValues(
 
 export function MyNames({
   names,
+  contexts,
   loading,
   error,
   refresh,
 }: {
   names: NameEntry[];
+  contexts: Context[];
   loading: boolean;
   error: string | null;
   refresh: () => void;
@@ -89,8 +91,7 @@ export function MyNames({
   const { createName, updateName } = useNames();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<NameEntry | null>(null);
-
-  const [filteredNames, filterProps] = useContextFilter(names);
+  const [filteredNames, filterProps] = useContextFilter(names, contexts);
 
   const handleAddName = async (data: NameFormData) => {
     await createName({
@@ -178,6 +179,7 @@ export function MyNames({
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onSubmit={handleAddName}
+        contexts={contexts}
       />
 
       {/* Edit name modal */}
@@ -186,7 +188,8 @@ export function MyNames({
           open
           onClose={() => setEditing(null)}
           onSubmit={handleEditName}
-          initialValues={getEditInitialValues(editing, filterProps.contexts)}
+          contexts={contexts}
+          initialValues={getEditInitialValues(editing, contexts)}
           currentAudioUrl={editing.audio_url}
           title="Edit name"
           submitLabel="Save"

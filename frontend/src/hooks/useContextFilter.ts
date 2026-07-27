@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useNames } from './useNames';
+import { useState } from 'react';
 import type { Context } from './useNames';
 
 export type ContextFilterProps = {
@@ -11,20 +10,11 @@ export type ContextFilterProps = {
 
 export function useContextFilter<T extends { context: { name: string } }>(
   items: T[],
+  contexts: Context[],
 ): [T[], ContextFilterProps] {
-  const { fetchContexts } = useNames();
-  const [contexts, setContexts] = useState<Context[]>([]);
   const [selectedContexts, setSelectedContexts] = useState<Set<string>>(
     new Set(),
   );
-
-  useEffect(() => {
-    fetchContexts()
-      .then(setContexts)
-      .catch(() => {
-        // Filters just won't show if this fails
-      });
-  }, [fetchContexts]);
 
   const onToggle = (context: string) => {
     setSelectedContexts((prev) => {

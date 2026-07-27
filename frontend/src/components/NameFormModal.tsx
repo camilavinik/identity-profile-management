@@ -1,6 +1,6 @@
 import { Languages, Signature, Tag } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useNames, type Context } from '../hooks';
+import type { Context } from '../hooks';
 import { ErrorAlert } from './ErrorAlert';
 import { Modal } from './Modal';
 
@@ -24,6 +24,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: NameFormData) => Promise<void>;
+  contexts: Context[];
   initialValues?: Partial<NameFormData>;
   currentAudioUrl?: string | null;
   title?: string;
@@ -34,27 +35,18 @@ export function NameFormModal({
   open,
   onClose,
   onSubmit,
+  contexts,
   initialValues,
   currentAudioUrl,
   title = 'Add name',
   submitLabel = 'Add',
 }: Props) {
   const hasAudio = !!currentAudioUrl;
-  const { fetchContexts } = useNames();
-  const [contexts, setContexts] = useState<Context[]>([]);
   const initialForm: NameFormData = { ...EMPTY_FORM, ...initialValues };
   const [form, setForm] = useState<NameFormData>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetchContexts()
-      .then(setContexts)
-      .catch(() => {
-        // If fetching contexts fails, submission will fail with a validation error
-      });
-  }, [fetchContexts]);
 
   // Shows placeholder audio file if it exists and the user have not selected a new one
   useEffect(() => {

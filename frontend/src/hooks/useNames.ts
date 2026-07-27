@@ -35,9 +35,6 @@ export type Context = {
   description: string | null;
 };
 
-// Cache contexts for re-use
-let contextsPromise: Promise<Context[]> | null = null;
-
 export type CreateNamePayload = {
   context: string;
   charset: string;
@@ -64,16 +61,7 @@ export function useNames() {
     [],
   );
 
-  const fetchContexts = useCallback(() => {
-    if (!contextsPromise) {
-      contextsPromise = apiFetch<Context[]>('/contexts').catch((err) => {
-        contextsPromise = null;
-        throw err;
-      });
-    }
-
-    return contextsPromise;
-  }, []);
+  const fetchContexts = useCallback(() => apiFetch<Context[]>('/contexts'), []);
 
   const uploadAudio = useCallback((nameId: string, file: File) => {
     const form = new FormData();

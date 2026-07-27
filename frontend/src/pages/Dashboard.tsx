@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Header, MyNames, NameHistory } from '../components';
-import { useNames, type HistoryPage, type NameEntry } from '../hooks';
+import {
+  useNames,
+  type Context,
+  type HistoryPage,
+  type NameEntry,
+} from '../hooks';
 
 export function Dashboard() {
-  const { fetchCurrentNames, fetchHistory } = useNames();
+  const { fetchCurrentNames, fetchHistory, fetchContexts } = useNames();
 
   const [names, setNames] = useState<NameEntry[]>([]);
   const [namesLoading, setNamesLoading] = useState(true);
@@ -12,6 +17,8 @@ export function Dashboard() {
   const [history, setHistory] = useState<HistoryPage | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
+
+  const [contexts, setContexts] = useState<Context[]>([]);
 
   useEffect(() => {
     fetchCurrentNames()
@@ -26,6 +33,14 @@ export function Dashboard() {
       .catch((err: Error) => setHistoryError(err.message))
       .finally(() => setHistoryLoading(false));
   }, [fetchHistory]);
+
+  useEffect(() => {
+    fetchContexts()
+      .then(setContexts)
+      .catch(() => {
+        // Filters and modal selects will show empty if this fails
+      });
+  }, [fetchContexts]);
 
   const refreshAll = useCallback(() => {
     setNamesLoading(true);
@@ -51,6 +66,7 @@ export function Dashboard() {
           <div className="lg:col-span-2">
             <MyNames
               names={names}
+              contexts={contexts}
               loading={namesLoading}
               error={namesError}
               refresh={refreshAll}
@@ -59,6 +75,7 @@ export function Dashboard() {
           <div className="lg:col-span-1">
             <NameHistory
               history={history}
+              contexts={contexts}
               loading={historyLoading}
               error={historyError}
             />

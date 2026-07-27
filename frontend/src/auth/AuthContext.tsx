@@ -13,11 +13,24 @@ type LoginCredentials = {
 
 type AuthContextValue = {
   token: string | null;
+  email: string | null;
   handleLogin: (credentials: LoginCredentials) => Promise<void>;
   handleSignup: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   loading: boolean;
 };
+
+function decodeEmailFromToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(atob(base64)) as { email?: string };
+    return json.email ?? null;
+  } catch {
+    return null;
+  }
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -72,9 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => setToken(null);
 
+  const email = decodeEmailFromToken(token);
+
   return (
     <AuthContext.Provider
-      value={{ token, handleLogin, handleSignup, logout, loading }}
+      value={{ token, email, handleLogin, handleSignup, logout, loading }}
     >
       {children}
     </AuthContext.Provider>

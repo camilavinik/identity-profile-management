@@ -88,7 +88,7 @@ export function AudioPlayer({
         aria-label="Restart audio"
       >
         <Square
-          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+          className={`${size === 'xs' ? 'size-2' : 'size-3'} fill-current stroke-1`}
         />
       </button>
       <button
@@ -99,7 +99,7 @@ export function AudioPlayer({
         aria-label="Play audio"
       >
         <Play
-          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+          className={`${size === 'xs' ? 'size-2' : 'size-3'} fill-current stroke-1`}
         />
       </button>
       <button
@@ -110,7 +110,7 @@ export function AudioPlayer({
         aria-label="Pause audio"
       >
         <Pause
-          className={`size-${size === 'xs' ? '2' : '3'} fill-current stroke-1`}
+          className={`${size === 'xs' ? 'size-2' : 'size-3'} fill-current stroke-1`}
         />
       </button>
     </div>

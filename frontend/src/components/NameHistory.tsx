@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react';
 import {
   useContextFilter,
+  type Context,
   type HistoryEntry,
   type HistoryPage,
 } from '../hooks';
@@ -12,15 +13,17 @@ import { AudioPlayer } from './AudioPlayer';
 
 export function NameHistory({
   history,
+  contexts,
   loading,
   error,
 }: {
   history: HistoryPage | null;
+  contexts: Context[];
   loading: boolean;
   error: string | null;
 }) {
   const entries = history?.data ?? [];
-  const [filteredEntries, filterProps] = useContextFilter(entries);
+  const [filteredEntries, filterProps] = useContextFilter(entries, contexts);
 
   return (
     <div className="card bg-base-100 shadow-xs">
