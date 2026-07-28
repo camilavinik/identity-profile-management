@@ -24,23 +24,17 @@ export function UserSearchModal({
 }) {
   const { fetchUserNamesById } = useNames();
   const [names, setNames] = useState<NameEntry[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [filteredNames, filterProps] = useContextFilter(names ?? [], contexts);
 
   useEffect(() => {
-    if (open && userId) {
-      setLoading(true);
-      setError(null);
-      setNames(null);
-
-      fetchUserNamesById(userId)
-        .then(setNames)
-        .catch((err: Error) => setError(err.message))
-        .finally(() => setLoading(false));
-    }
-  }, [open, userId, fetchUserNamesById]);
+    fetchUserNamesById(userId)
+      .then(setNames)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [userId, fetchUserNamesById]);
 
   return (
     <Modal

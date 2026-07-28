@@ -1,5 +1,5 @@
 import { Search, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth';
 import type { Context } from '../hooks';
@@ -11,11 +11,6 @@ export function Header({ contexts }: { contexts: Context[] }) {
   const { userId: searchedUserId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState(searchedUserId ?? '');
-
-  // Keep the input in sync with the URL
-  useEffect(() => {
-    if (searchedUserId) setSearchValue(searchedUserId);
-  }, [searchedUserId]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +60,7 @@ export function Header({ contexts }: { contexts: Context[] }) {
       </div>
       {searchedUserId && (
         <UserSearchModal
+          key={searchedUserId}
           open
           userId={searchedUserId}
           contexts={contexts}
