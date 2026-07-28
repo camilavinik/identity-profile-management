@@ -7,8 +7,10 @@ import { ErrorAlert } from './ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer';
 import { Modal } from './Modal';
+import { NameCard } from './NameCard';
 import { NameFormModal } from './NameFormModal';
 import { Options } from './Options';
+import { UserSearchModal } from './UserSearchModal';
 
 export {
   Header,
@@ -20,6 +22,8 @@ export {
   EmptyStateAlert,
   AudioPlayer,
   Modal,
+  NameCard,
   NameFormModal,
   Options,
+  UserSearchModal,
 };

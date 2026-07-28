@@ -15,6 +15,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/:userId"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />

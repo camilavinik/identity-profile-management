@@ -6,61 +6,11 @@ import {
   type Context,
   type NameEntry,
 } from '../hooks';
-import { ContextCharsetBadge } from './ContextCharsetBadge';
 import { ContextFilter } from './ContextFilter';
 import { EmptyStateAlert } from './EmptyStateAlert';
 import { ErrorAlert } from './ErrorAlert';
-import { AudioPlayer } from './AudioPlayer';
+import { NameCard } from './NameCard';
 import { NameFormModal, type NameFormData } from './NameFormModal';
-import { Options } from './Options';
-
-function NameCard({
-  name,
-  skeleton = false,
-  onEdit,
-}: {
-  name: NameEntry;
-  skeleton?: boolean;
-  onEdit?: () => void;
-}) {
-  if (skeleton) {
-    return <div className="skeleton w-full h-26" />;
-  }
-
-  return (
-    <div className="card bg-base-100 shadow-xs">
-      <div className="card-body">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <ContextCharsetBadge context={name.context.name} variant="soft">
-              {name.context.name.toUpperCase()}
-            </ContextCharsetBadge>
-            <ContextCharsetBadge context={name.context.name} variant="dash">
-              {name.charset.toUpperCase()}
-            </ContextCharsetBadge>
-          </div>
-
-          <Options menuClassName="w-32">
-            <li>
-              <button type="button" onClick={onEdit}>
-                Edit
-              </button>
-            </li>
-          </Options>
-        </div>
-
-        <div className="w-full flex items-center justify-between gap-2">
-          {name.value ? (
-            <p className="text-lg">{name.value}</p>
-          ) : (
-            <p className="text-gray-500 italic">No value</p>
-          )}
-          <AudioPlayer audioUrl={name.audio_url} size="sm" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function getEditInitialValues(
   name: NameEntry,

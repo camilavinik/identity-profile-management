@@ -8,8 +8,8 @@ export function Modal({
 }: {
   open: boolean;
   onClose: () => void;
-  title?: string;
-  children: ReactNode;
+  title?: ReactNode;
+  children?: ReactNode;
 }) {
   const dialogRef = useCallback((node: HTMLDialogElement | null) => {
     if (node && !node.open) node.showModal();

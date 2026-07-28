@@ -63,6 +63,11 @@ export function useNames() {
 
   const fetchContexts = useCallback(() => apiFetch<Context[]>('/contexts'), []);
 
+  const fetchUserNamesById = useCallback(
+    (userId: string) => apiFetch<NameEntry[]>(`/user/${userId}/name`),
+    [],
+  );
+
   const uploadAudio = useCallback((nameId: string, file: File) => {
     const form = new FormData();
     form.append('file', file);
@@ -119,6 +124,7 @@ export function useNames() {
     fetchCurrentNames,
     fetchHistory,
     fetchContexts,
+    fetchUserNamesById,
     createName,
     updateName,
   };
