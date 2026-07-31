@@ -17,7 +17,7 @@ export class AuthService {
   async signup(
     email: string,
     password: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; email: string }> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -36,7 +36,7 @@ export class AuthService {
   async login(
     email: string,
     password: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; email: string }> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -52,6 +52,9 @@ export class AuthService {
   }
 
   private async generateAccessToken(sub: string, email: string) {
-    return { access_token: await this.jwtService.signAsync({ sub, email }) };
+    return {
+      access_token: await this.jwtService.signAsync({ sub, email }),
+      email,
+    };
   }
 }

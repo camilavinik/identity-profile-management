@@ -1,6 +1,8 @@
+import { BookOpen } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ErrorAlert } from '../components';
+import { API_DOCS_URL } from '../lib/apiDocs';
 
 type Props = {
   title: string;
@@ -64,6 +66,18 @@ export function Layout({
           >
             {cta}
           </button>
+
+          <div className="divider my-1">OR</div>
+
+          <a
+            href={API_DOCS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="btn w-full shadow-xs"
+          >
+            <BookOpen className="size-4" />
+            API Documentation
+          </a>
         </div>
       </div>
     </div>

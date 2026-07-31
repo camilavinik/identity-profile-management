@@ -68,7 +68,10 @@ describe('AuthService', () => {
       });
 
       // Check if the token was returned
-      expect(result).toEqual({ access_token: 'test-token' });
+      expect(result).toEqual({
+        access_token: 'test-token',
+        email: 'test@test.com',
+      });
     });
 
     it('should throw an error if the user already exists', async () => {
@@ -104,7 +107,10 @@ describe('AuthService', () => {
       const result = await service.login('test@test.com', 'test-password');
 
       // Check if the user was logged in
-      expect(result).toEqual({ access_token: 'test-token' });
+      expect(result).toEqual({
+        access_token: 'test-token',
+        email: 'test@test.com',
+      });
     });
 
     it('should throw an error if the user does not exist', async () => {

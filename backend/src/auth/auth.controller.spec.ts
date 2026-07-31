@@ -30,7 +30,10 @@ describe('AuthController', () => {
   describe('signup', () => {
     it('should call authService.signup with email and password', async () => {
       // Mock signup response
-      const tokenResponse = { access_token: 'test-token' };
+      const tokenResponse = {
+        access_token: 'test-token',
+        email: 'test@test.com',
+      };
       authService.signup.mockResolvedValue(tokenResponse);
 
       // Try to signup
@@ -46,7 +49,10 @@ describe('AuthController', () => {
   describe('login', () => {
     it('should call authService.login with email and password', async () => {
       // Mock login response
-      const tokenResponse = { access_token: 'test-token' };
+      const tokenResponse = {
+        access_token: 'test-token',
+        email: 'test@test.com',
+      };
       authService.login.mockResolvedValue(tokenResponse);
 
       // Try to login

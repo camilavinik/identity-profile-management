@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth';
 import type { Context } from '../hooks';
+import { API_DOCS_URL } from '../lib/apiDocs';
 import { Options } from './Options';
 import { UserSearchModal } from './UserSearchModal';
+import { BookOpen, LogOut } from 'lucide-react';
 
 export function Header({ contexts }: { contexts: Context[] }) {
   const { logout, email } = useAuth();
@@ -53,7 +55,16 @@ export function Header({ contexts }: { contexts: Context[] }) {
           {email && <span className="text-sm text-gray-500">{email}</span>}
           <Options>
             <li>
-              <button onClick={logout}>Log Out</button>
+              <a href={API_DOCS_URL} target="_blank" rel="noreferrer">
+                <BookOpen className="size-4" />
+                API Documentation
+              </a>
+            </li>
+            <li>
+              <button onClick={logout}>
+                <LogOut className="size-4" />
+                Log Out
+              </button>
             </li>
           </Options>
         </div>

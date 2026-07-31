@@ -12,6 +12,7 @@ import {
   ParseUUIDPipe,
   UploadedFile,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { NameService } from './name.service';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import type { JwtUser } from 'src/auth/current-user.decorator';
@@ -22,6 +23,8 @@ import { UpdateNameEntryDto } from './dto/update-name-entry.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
 
+@ApiTags('me/name')
+@ApiBearerAuth('bearer')
 @Controller('me/name')
 export class NameController {
   constructor(private readonly nameService: NameService) {}
@@ -51,6 +54,19 @@ export class NameController {
   }
 
   @Post(':nameId/audio')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 1024 * 1024 * 5 }, // 5MB

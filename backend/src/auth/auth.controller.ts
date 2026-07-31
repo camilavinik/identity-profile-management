@@ -1,9 +1,12 @@
 import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { AuthTokenDto } from './dto/auth-token.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './public.decorator';
 import { SignupDto } from './dto/signup.dto';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -11,6 +14,7 @@ export class AuthController {
   @Public()
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: AuthTokenDto })
   signup(@Body() dto: SignupDto) {
     return this.authService.signup(dto.email, dto.password);
   }
@@ -18,6 +22,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: AuthTokenDto })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
