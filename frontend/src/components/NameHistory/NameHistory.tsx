@@ -27,7 +27,7 @@ export function NameHistory({
 
   return (
     <div className="card bg-base-100 shadow-xs">
-      <div className="card-body gap-0">
+      <div className="card-body gap-3">
         <h3 className="card-title">
           History
           <span className="tooltip tooltip-right">
@@ -40,13 +40,11 @@ export function NameHistory({
         </h3>
 
         {/* Filters */}
-        <div className="mt-2">
-          <ContextFilter {...filterProps} size="xs" />
-        </div>
+        <ContextFilter {...filterProps} size="xs" />
 
         {/* Loading skeleton */}
         {loading && (
-          <ul className="list">
+          <ul className="list -mt-2">
             <NameHistoryEntry entry={{} as HistoryEntry} skeleton />
             <NameHistoryEntry entry={{} as HistoryEntry} skeleton />
             <NameHistoryEntry entry={{} as HistoryEntry} skeleton />
@@ -72,7 +70,7 @@ export function NameHistory({
 
         {/* Names list */}
         {!loading && !error && filteredEntries.length > 0 && (
-          <ul className="list">
+          <ul className="list -mt-2">
             {filteredEntries.map((entry) => (
               <NameHistoryEntry key={entry.id} entry={entry} />
             ))}

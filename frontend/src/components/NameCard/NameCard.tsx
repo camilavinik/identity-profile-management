@@ -2,6 +2,7 @@ import type { NameEntry } from '../../hooks';
 import { AudioPlayer } from '../AudioPlayer/AudioPlayer';
 import { ContextCharsetBadge } from '../ContextCharsetBadge/ContextCharsetBadge';
 import { Options } from '../Options/Options';
+import { Pencil } from 'lucide-react';
 
 export function NameCard({
   name,
@@ -49,6 +50,7 @@ export function NameCard({
             <Options menuClassName="w-32">
               <li>
                 <button type="button" onClick={onEdit}>
+                  <Pencil className="size-4" />
                   Edit
                 </button>
               </li>
