@@ -14,21 +14,25 @@ type LoginCredentials = {
 type AuthContextValue = {
   token: string | null;
   email: string | null;
+  userId: string | null;
   handleLogin: (credentials: LoginCredentials) => Promise<void>;
   handleSignup: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   loading: boolean;
 };
 
-function decodeEmailFromToken(token: string | null): string | null {
-  if (!token) return null;
+function decodeToken(token: string | null): {
+  email: string | null;
+  userId: string | null;
+} {
+  if (!token) return { email: null, userId: null };
   try {
     const payload = token.split('.')[1];
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const json = JSON.parse(atob(base64)) as { email?: string };
-    return json.email ?? null;
+    const json = JSON.parse(atob(base64)) as { email?: string; sub?: string };
+    return { email: json.email ?? null, userId: json.sub ?? null };
   } catch {
-    return null;
+    return { email: null, userId: null };
   }
 }
 
@@ -85,11 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => setToken(null);
 
-  const email = decodeEmailFromToken(token);
+  const { email, userId } = decodeToken(token);
 
   return (
     <AuthContext.Provider
-      value={{ token, email, handleLogin, handleSignup, logout, loading }}
+      value={{
+        token,
+        email,
+        userId,
+        handleLogin,
+        handleSignup,
+        logout,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

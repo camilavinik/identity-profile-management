@@ -5,6 +5,14 @@ export type MockAudio = Partial<HTMLAudioElement> & {
   dispatch: (event: string) => void;
 };
 
+export const authMockState: { userId: string | null } = {
+  userId: 'user-123',
+};
+
+export function resetAuthMock() {
+  authMockState.userId = 'user-123';
+}
+
 export function mockShowModal() {
   HTMLDialogElement.prototype.showModal = vi.fn(function (
     this: HTMLDialogElement,

@@ -2,13 +2,22 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { testContexts, testName } from '../../test/fixtures';
-import { mockShowModal, mockAudioApi } from '../../test/mocks';
+import {
+  authMockState,
+  mockAudioApi,
+  mockShowModal,
+  resetAuthMock,
+} from '../../test/mocks';
 import { MyNames } from './MyNames';
 
 const names = [testName];
 
 const createName = vi.fn();
 const updateName = vi.fn();
+
+vi.mock('../../auth', () => ({
+  useAuth: () => authMockState,
+}));
 
 vi.mock('../../hooks', async () => {
   const actual =
@@ -27,6 +36,9 @@ describe('MyNames', () => {
     // Mock the createName and updateName functions
     createName.mockReset().mockResolvedValue(undefined);
     updateName.mockReset().mockResolvedValue(undefined);
+
+    // Reset the shared auth mock state
+    resetAuthMock();
 
     // Mock the showModal method for dialogs
     mockShowModal();

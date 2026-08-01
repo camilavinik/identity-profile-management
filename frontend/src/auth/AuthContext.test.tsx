@@ -8,7 +8,7 @@ const apiFetch = vi.fn();
 const navigate = vi.fn();
 
 // AuthProvider only reads the middle part as JSON
-const token = `x.${btoa(JSON.stringify({ email: 'test@email.com' }))}.x`;
+const token = `x.${btoa(JSON.stringify({ email: 'test@email.com', sub: 'user-123' }))}.x`;
 
 vi.mock('../lib/api', () => ({
   apiFetch: (...args: unknown[]) => apiFetch(...args),
@@ -51,6 +51,7 @@ describe('AuthProvider', () => {
 
     expect(result.current.token).toBe(token);
     expect(result.current.email).toBe('test@email.com');
+    expect(result.current.userId).toBe('user-123');
   });
 
   it('logs in, stores the token and navigates dashboard', async () => {
@@ -109,23 +110,37 @@ describe('AuthProvider', () => {
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
   });
 
-  it('returns null email when the token payload is invalid', () => {
+  it('returns null email and userId when the token payload is invalid', () => {
     localStorage.setItem(TOKEN_KEY, 'not-token');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.email).toBeNull();
+    expect(result.current.userId).toBeNull();
   });
 
-  it('returns null email when the token has no email claim', () => {
+  it('returns null email when the token has no email claim, but keeps userId', () => {
     localStorage.setItem(
       TOKEN_KEY,
-      `x.${btoa(JSON.stringify({ sub: '1' }))}.x`,
+      `x.${btoa(JSON.stringify({ sub: 'only-id' }))}.x`,
     );
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.email).toBeNull();
+    expect(result.current.userId).toBe('only-id');
+  });
+
+  it('returns null userId when the token has no sub claim, but keeps email', () => {
+    localStorage.setItem(
+      TOKEN_KEY,
+      `x.${btoa(JSON.stringify({ email: 'only@email.com' }))}.x`,
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    expect(result.current.email).toBe('only@email.com');
+    expect(result.current.userId).toBeNull();
   });
 });
 

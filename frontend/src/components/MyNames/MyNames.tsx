@@ -7,6 +7,7 @@ import {
   type NameEntry,
 } from '../../hooks';
 import { ContextFilter } from '../ContextFilter/ContextFilter';
+import { CopyUserId } from '../CopyUserId/CopyUserId';
 import { EmptyStateAlert } from '../EmptyStateAlert/EmptyStateAlert';
 import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
 import { NameCard } from '../NameCard/NameCard';
@@ -71,7 +72,10 @@ export function MyNames({
     <div>
       {/* Title and Add Name Button*/}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">My names</h2>
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-2xl font-bold">My names</h2>
+          <CopyUserId />
+        </div>
         <button
           type="button"
           className="btn btn-neutral btn-sm shadow-xs"

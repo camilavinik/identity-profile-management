@@ -3,6 +3,7 @@ import { MyNames } from './MyNames/MyNames';
 import { NameHistory } from './NameHistory/NameHistory';
 import { ContextCharsetBadge } from './ContextCharsetBadge/ContextCharsetBadge';
 import { ContextFilter } from './ContextFilter/ContextFilter';
+import { CopyUserId } from './CopyUserId/CopyUserId';
 import { ErrorAlert } from './ErrorAlert/ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert/EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer/AudioPlayer';
@@ -19,6 +20,7 @@ export {
   NameHistory,
   ContextCharsetBadge,
   ContextFilter,
+  CopyUserId,
   ErrorAlert,
   EmptyStateAlert,
   AudioPlayer,
