@@ -5,12 +5,15 @@ import {
   useNames,
   type Context,
   type NameEntry,
-} from '../hooks';
-import { ContextFilter } from './ContextFilter';
-import { EmptyStateAlert } from './EmptyStateAlert';
-import { ErrorAlert } from './ErrorAlert';
-import { NameCard } from './NameCard';
-import { NameFormModal, type NameFormData } from './NameFormModal';
+} from '../../hooks';
+import { ContextFilter } from '../ContextFilter/ContextFilter';
+import { EmptyStateAlert } from '../EmptyStateAlert/EmptyStateAlert';
+import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
+import { NameCard } from '../NameCard/NameCard';
+import {
+  NameFormModal,
+  type NameFormData,
+} from '../NameFormModal/NameFormModal';
 
 function getEditInitialValues(
   name: NameEntry,
@@ -54,16 +57,14 @@ export function MyNames({
   };
 
   const handleEditName = async (data: NameFormData) => {
-    if (editing) {
-      await updateName(editing.id, {
-        context: data.context,
-        charset: data.charset,
-        value: data.value.trim(),
-        audioFile: data.audioFile,
-        removeAudio: data.removeAudio,
-      });
-      refresh();
-    }
+    await updateName(editing!.id, {
+      context: data.context,
+      charset: data.charset,
+      value: data.value.trim(),
+      audioFile: data.audioFile,
+      removeAudio: data.removeAudio,
+    });
+    refresh();
   };
 
   return (

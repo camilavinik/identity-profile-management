@@ -17,5 +17,21 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+      css: true,
+      coverage: {
+        exclude: [
+          'src/test/**',
+          'src/**/*.test.{ts,tsx}',
+          'src/**/index.ts',
+          'src/main.tsx',
+          'src/App.tsx',
+          'src/lib/apiDocs.ts',
+        ],
+      },
+    },
   };
 });

@@ -4,12 +4,12 @@ import {
   useNames,
   type Context,
   type NameEntry,
-} from '../hooks';
-import { ContextFilter } from './ContextFilter';
-import { EmptyStateAlert } from './EmptyStateAlert';
-import { ErrorAlert } from './ErrorAlert';
-import { Modal } from './Modal';
-import { NameCard } from './NameCard';
+} from '../../hooks';
+import { ContextFilter } from '../ContextFilter/ContextFilter';
+import { EmptyStateAlert } from '../EmptyStateAlert/EmptyStateAlert';
+import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
+import { Modal } from '../Modal/Modal';
+import { NameCard } from '../NameCard/NameCard';
 
 export function UserSearchModal({
   open,

@@ -1,11 +1,11 @@
 import { Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../auth';
-import type { Context } from '../hooks';
-import { API_DOCS_URL } from '../lib/apiDocs';
-import { Options } from './Options';
-import { UserSearchModal } from './UserSearchModal';
+import { useAuth } from '../../auth';
+import type { Context } from '../../hooks';
+import { API_DOCS_URL } from '../../lib/apiDocs';
+import { Options } from '../Options/Options';
+import { UserSearchModal } from '../UserSearchModal/UserSearchModal';
 import { BookOpen, LogOut } from 'lucide-react';
 
 export function Header({ contexts }: { contexts: Context[] }) {

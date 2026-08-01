@@ -4,12 +4,12 @@ import {
   type Context,
   type HistoryEntry,
   type HistoryPage,
-} from '../hooks';
-import { ContextCharsetBadge } from './ContextCharsetBadge';
-import { ContextFilter } from './ContextFilter';
-import { EmptyStateAlert } from './EmptyStateAlert';
-import { ErrorAlert } from './ErrorAlert';
-import { AudioPlayer } from './AudioPlayer';
+} from '../../hooks';
+import { ContextCharsetBadge } from '../ContextCharsetBadge/ContextCharsetBadge';
+import { ContextFilter } from '../ContextFilter/ContextFilter';
+import { EmptyStateAlert } from '../EmptyStateAlert/EmptyStateAlert';
+import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
+import { AudioPlayer } from '../AudioPlayer/AudioPlayer';
 
 export function NameHistory({
   history,

@@ -1,7 +1,7 @@
-import type { NameEntry } from '../hooks';
-import { AudioPlayer } from './AudioPlayer';
-import { ContextCharsetBadge } from './ContextCharsetBadge';
-import { Options } from './Options';
+import type { NameEntry } from '../../hooks';
+import { AudioPlayer } from '../AudioPlayer/AudioPlayer';
+import { ContextCharsetBadge } from '../ContextCharsetBadge/ContextCharsetBadge';
+import { Options } from '../Options/Options';
 
 export function NameCard({
   name,

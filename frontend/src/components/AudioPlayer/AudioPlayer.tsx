@@ -43,34 +43,28 @@ export function AudioPlayer({
   if (!audioUrl) return null;
 
   const restart = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      setPlaying(false);
-    }
+    const audio = audioRef.current!;
+    audio.pause();
+    audio.currentTime = 0;
+    setPlaying(false);
   };
 
   const play = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      // If the audio has ended reset it
-      if (audio.ended) {
-        audio.currentTime = 0;
-      }
-
-      // Play the audio
-      void audio.play();
-      setPlaying(true);
+    const audio = audioRef.current!;
+    // If the audio has ended reset it
+    if (audio.ended) {
+      audio.currentTime = 0;
     }
+
+    // Play the audio
+    void audio.play();
+    setPlaying(true);
   };
 
   const pause = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      setPlaying(false);
-    }
+    const audio = audioRef.current!;
+    audio.pause();
+    setPlaying(false);
   };
 
   const iconButton =

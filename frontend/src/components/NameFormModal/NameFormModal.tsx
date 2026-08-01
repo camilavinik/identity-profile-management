@@ -1,8 +1,8 @@
 import { Languages, Signature, Tag } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Context } from '../hooks';
-import { ErrorAlert } from './ErrorAlert';
-import { Modal } from './Modal';
+import type { Context } from '../../hooks';
+import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
+import { Modal } from '../Modal/Modal';
 
 export type NameFormData = {
   context: string;

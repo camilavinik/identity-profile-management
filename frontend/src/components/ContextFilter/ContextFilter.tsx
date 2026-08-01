@@ -1,5 +1,5 @@
-import type { Context } from '../hooks';
-import { ContextCharsetBadge } from './ContextCharsetBadge';
+import type { Context } from '../../hooks';
+import { ContextCharsetBadge } from '../ContextCharsetBadge/ContextCharsetBadge';
 
 export function ContextFilter({
   contexts,

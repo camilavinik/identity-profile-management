@@ -1,16 +1,16 @@
-import { Header } from './Header';
-import { MyNames } from './MyNames';
-import { NameHistory } from './NameHistory';
-import { ContextCharsetBadge } from './ContextCharsetBadge';
-import { ContextFilter } from './ContextFilter';
-import { ErrorAlert } from './ErrorAlert';
-import { EmptyStateAlert } from './EmptyStateAlert';
-import { AudioPlayer } from './AudioPlayer';
-import { Modal } from './Modal';
-import { NameCard } from './NameCard';
-import { NameFormModal } from './NameFormModal';
-import { Options } from './Options';
-import { UserSearchModal } from './UserSearchModal';
+import { Header } from './Header/Header';
+import { MyNames } from './MyNames/MyNames';
+import { NameHistory } from './NameHistory/NameHistory';
+import { ContextCharsetBadge } from './ContextCharsetBadge/ContextCharsetBadge';
+import { ContextFilter } from './ContextFilter/ContextFilter';
+import { ErrorAlert } from './ErrorAlert/ErrorAlert';
+import { EmptyStateAlert } from './EmptyStateAlert/EmptyStateAlert';
+import { AudioPlayer } from './AudioPlayer/AudioPlayer';
+import { Modal } from './Modal/Modal';
+import { NameCard } from './NameCard/NameCard';
+import { NameFormModal } from './NameFormModal/NameFormModal';
+import { Options } from './Options/Options';
+import { UserSearchModal } from './UserSearchModal/UserSearchModal';
 
 export {
   Header,
