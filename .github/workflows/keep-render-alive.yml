@@ -1,0 +1,25 @@
+name: Keep Render Service Alive (between 6am and 11pm UK time)
+
+on:
+  schedule:
+    # Run every 7 minutes
+    - cron: '*/7 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check UK time and ping if within core hours
+        run: |
+          # Get current UK time (Europe/London timezone)
+          UK_TIME=$(TZ='Europe/London' date +%H)
+          UK_HOUR=${UK_TIME#0}  # Remove leading zero if present
+
+          # Check if between 6am (06) and 11pm (23)
+          if [ "$UK_HOUR" -ge 6 ] && [ "$UK_HOUR" -lt 23 ]; then
+            echo "UK time is $UK_TIME:00 - within core hours (6am-11pm), pinging service..."
+            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" https://identity-profile-management.onrender.com/contexts || echo "Ping completed"
+          else
+            echo "UK time is $UK_TIME:00 - outside core hours (11pm-6am), skipping ping"
+          fi
