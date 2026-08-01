@@ -22,11 +22,11 @@ describe('apiFetch', () => {
     localStorage.clear();
   });
 
-  it('calls /api with the given path', async () => {
+  it('calls the backend URL with the given path', async () => {
     await apiFetch('/me/name');
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/me/name',
+      expect.stringMatching(/\/me\/name$/),
       expect.objectContaining({ headers: expect.any(Headers) }),
     );
   });
@@ -130,5 +130,31 @@ describe('apiFetch', () => {
     await expect(apiFetch('/me/name')).rejects.toBeInstanceOf(ApiError);
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
     expect(location.href).toBe('/login');
+  });
+
+  it('uses VITE_BACKEND_URL when it is defined', async () => {
+    vi.stubEnv('VITE_BACKEND_URL', 'https://test.com');
+
+    await apiFetch('/me/name');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://test.com/me/name',
+      expect.objectContaining({ headers: expect.any(Headers) }),
+    );
+
+    vi.unstubAllEnvs();
+  });
+
+  it('falls back to localhost when VITE_BACKEND_URL is not defined', async () => {
+    vi.stubEnv('VITE_BACKEND_URL', undefined as unknown as string);
+
+    await apiFetch('/me/name');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/me/name',
+      expect.objectContaining({ headers: expect.any(Headers) }),
+    );
+
+    vi.unstubAllEnvs();
   });
 });

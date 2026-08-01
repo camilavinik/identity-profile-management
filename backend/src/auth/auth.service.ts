@@ -45,7 +45,7 @@ export class AuthService {
       ? await bcrypt.compare(password, user.password_hash)
       : false;
     if (!passwordCorrect) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     return this.generateAccessToken(user!.id, user!.email);

@@ -27,7 +27,7 @@ export function Layout({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3">
-      <div className="card w-full max-w-md shadow-md">
+      <div className="card w-full max-w-md shadow-md border border-base-300">
         <div className="card-body gap-4">
           <div role="tablist" className="tabs tabs-box self-center">
             <input

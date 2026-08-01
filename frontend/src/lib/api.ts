@@ -13,6 +13,9 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:3000';
+
   // Get token from localStorage
   const token = localStorage.getItem(TOKEN_KEY);
 
@@ -28,13 +31,13 @@ export async function apiFetch<T>(
   }
 
   // Fetch
-  const res = await fetch(`/api${path}`, { ...options, headers });
+  const res = await fetch(`${backendUrl}${path}`, { ...options, headers });
   const body = (await res.json().catch(() => null)) as {
     message?: string | string[];
   } | null;
 
-  // If unauthorized, logout and redirect to login
-  if (res.status === 401) {
+  // If unauthorized, logout and redirect to login, except for auth routes
+  if (res.status === 401 && !path.includes('/auth/')) {
     localStorage.removeItem(TOKEN_KEY);
     window.location.href = '/login';
   }
