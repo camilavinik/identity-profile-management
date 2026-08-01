@@ -10,6 +10,7 @@ import { Modal } from './Modal/Modal';
 import { NameCard } from './NameCard/NameCard';
 import { NameFormModal } from './NameFormModal/NameFormModal';
 import { Options } from './Options/Options';
+import { ThemeToggle } from './ThemeToggle/ThemeToggle';
 import { UserSearchModal } from './UserSearchModal/UserSearchModal';
 
 export {
@@ -25,5 +26,6 @@ export {
   NameCard,
   NameFormModal,
   Options,
+  ThemeToggle,
   UserSearchModal,
 };

@@ -47,6 +47,10 @@ describe('Header', () => {
     logout.mockReset();
     fetchUserNamesById.mockReset().mockResolvedValue([]);
 
+    // Reset theme state
+    localStorage.clear();
+    document.documentElement.removeAttribute('data-theme');
+
     // Mock the showModal method for dialogs
     mockShowModal();
 
@@ -123,6 +127,25 @@ describe('Header', () => {
 
     expect(await screen.findByText(/Find user/)).toBeInTheDocument();
     expect(screen.getByText(/user-1/)).toBeInTheDocument();
+  });
+
+  it('toggles between light and dark mode when theme button is clicked', async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    const toggle = screen.getByRole('button', { name: /switch to dark mode/i });
+    await user.click(toggle);
+
+    expect(
+      screen.getByRole('button', { name: /switch to light mode/i }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: /switch to light mode/i }),
+    );
+    expect(
+      screen.getByRole('button', { name: /switch to dark mode/i }),
+    ).toBeInTheDocument();
   });
 
   it('navigates home when the user search modal closes', async () => {

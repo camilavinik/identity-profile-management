@@ -26,7 +26,7 @@ export function Options({
       <ul
         tabIndex={0}
         onClick={close}
-        className={`dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-lg ${menuClassName}`}
+        className={`dropdown-content menu bg-base-100 border border-base-200 rounded-box z-1 p-2 shadow-lg ${menuClassName}`}
       >
         {children}
       </ul>

@@ -4,3 +4,7 @@
     light --default,
     dark;
 }
+
+[data-theme='dark'] {
+  --color-base-content: #d2d6d7;
+}

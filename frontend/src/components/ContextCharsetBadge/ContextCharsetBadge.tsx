@@ -34,10 +34,13 @@ export function ContextCharsetBadge({
   onClick?: () => void;
   children: ReactNode;
 }) {
+  const isMutedSoft = muted && variant === 'soft';
   const colourClass = muted
     ? 'badge-neutral'
     : (mapContextToColour[context.toLowerCase()] ?? 'badge-neutral');
-  const className = `badge ${sizeClass[size]} ${variantClass[variant]} font-semibold ${colourClass}`;
+  const className = isMutedSoft
+    ? `badge ${sizeClass[size]} font-semibold bg-base-300 text-base-content/60 border-base-300`
+    : `badge ${sizeClass[size]} ${variantClass[variant]} font-semibold ${colourClass}`;
 
   if (onClick) {
     return (

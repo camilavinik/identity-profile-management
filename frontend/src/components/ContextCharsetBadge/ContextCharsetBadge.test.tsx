@@ -14,9 +14,18 @@ describe('ContextCharsetBadge', () => {
     expect(screen.getByText('LEGAL')).toHaveClass('badge-primary');
   });
 
-  it('uses neutral color when muted', () => {
+  it('uses base-300 background when muted with soft variant', () => {
     render(
       <ContextCharsetBadge context="legal" muted>
+        LEGAL
+      </ContextCharsetBadge>,
+    );
+    expect(screen.getByText('LEGAL')).toHaveClass('bg-base-300');
+  });
+
+  it('uses neutral color when muted with solid variant', () => {
+    render(
+      <ContextCharsetBadge context="legal" muted variant="solid">
         LEGAL
       </ContextCharsetBadge>,
     );

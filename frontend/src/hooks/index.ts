@@ -1,5 +1,6 @@
 export { useNames } from './useNames';
 export { useContextFilter } from './useContextFilter';
+export { useTheme } from './useTheme';
 
 export type {
   NameEntry,
@@ -10,3 +11,4 @@ export type {
   UpdateNamePayload,
 } from './useNames';
 export type { ContextFilterProps } from './useContextFilter';
+export type { Theme } from './useTheme';

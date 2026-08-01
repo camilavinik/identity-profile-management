@@ -72,7 +72,7 @@ export function AudioPlayer({
 
   return (
     <div
-      className={`badge badge-neutral badge-soft ${size === 'xs' ? 'badge-sm gap-1.5' : 'gap-2'}`}
+      className={`badge bg-base-200 text-base-content border-base-300 ${size === 'xs' ? 'badge-sm gap-1.5' : 'gap-2'}`}
     >
       <button
         type="button"

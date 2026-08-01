@@ -1,12 +1,12 @@
-import { Search, Users } from 'lucide-react';
+import { BookOpen, LogOut, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import type { Context } from '../../hooks';
 import { API_DOCS_URL } from '../../lib/apiDocs';
 import { Options } from '../Options/Options';
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { UserSearchModal } from '../UserSearchModal/UserSearchModal';
-import { BookOpen, LogOut } from 'lucide-react';
 
 export function Header({ contexts }: { contexts: Context[] }) {
   const { logout, email } = useAuth();
@@ -53,6 +53,7 @@ export function Header({ contexts }: { contexts: Context[] }) {
         </form>
         <div className="navbar-end flex items-center gap-2">
           {email && <span className="text-sm text-gray-500">{email}</span>}
+          <ThemeToggle />
           <Options>
             <li>
               <a href={API_DOCS_URL} target="_blank" rel="noreferrer">

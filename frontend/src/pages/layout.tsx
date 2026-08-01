@@ -1,7 +1,7 @@
 import { BookOpen } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ErrorAlert } from '../components';
+import { ErrorAlert, ThemeToggle } from '../components';
 import { API_DOCS_URL } from '../lib/apiDocs';
 
 type Props = {
@@ -27,6 +27,9 @@ export function Layout({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3">
+      <div className="fixed top-4 right-4">
+        <ThemeToggle size="md" />
+      </div>
       <div className="card w-full max-w-md shadow-md border border-base-300">
         <div className="card-body gap-4">
           <div role="tablist" className="tabs tabs-box self-center">
