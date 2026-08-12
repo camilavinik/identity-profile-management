@@ -26,34 +26,16 @@ export function Header({ contexts }: { contexts: Context[] }) {
   };
 
   return (
-    <header className="navbar bg-base-100 shadow-xs px-0">
-      <div className="container mx-auto flex items-center px-4">
-        <div className="navbar-start flex items-baseline gap-2">
-          <h1 className="text-2xl font-bold">IPM</h1>{' '}
-          <span className="text-sm text-gray-500">
+    <header className="bg-base-100 shadow-xs">
+      <div className="container mx-auto grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-3 px-4 py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:py-2">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-2xl font-bold">IPM</h1>
+          <span className="hidden text-sm text-gray-500 sm:inline">
             Identity Profile Management
           </span>
         </div>
-        <form className="navbar-center join" onSubmit={handleSearch}>
-          <label className="input input-sm join-item w-72">
-            <Users className="size-4 opacity-50" />
-            <input
-              type="search"
-              placeholder="Find user by id or email"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-          </label>
-          <button
-            type="submit"
-            aria-label="Search"
-            disabled={!searchValue.trim()}
-            className="btn btn-neutral btn-sm join-item shadow-xs"
-          >
-            <Search className="size-4" />
-          </button>
-        </form>
-        <div className="navbar-end flex items-center gap-2">
+
+        <div className="flex items-center gap-2 justify-self-end lg:order-3">
           {email && <span className="text-sm text-gray-500">{email}</span>}
           <ThemeToggle />
           <Options>
@@ -77,6 +59,29 @@ export function Header({ contexts }: { contexts: Context[] }) {
             </li>
           </Options>
         </div>
+
+        <form
+          className="join col-span-2 w-full lg:col-span-1 lg:order-2 lg:max-w-md lg:justify-self-center"
+          onSubmit={handleSearch}
+        >
+          <label className="input input-sm join-item min-w-0 flex-1">
+            <Users className="size-4 shrink-0 opacity-50" />
+            <input
+              type="search"
+              placeholder="Find user by id or email"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            aria-label="Search"
+            disabled={!searchValue.trim()}
+            className="btn btn-neutral btn-sm join-item shadow-xs"
+          >
+            <Search className="size-4" />
+          </button>
+        </form>
       </div>
       {searched && (
         <UserSearchModal

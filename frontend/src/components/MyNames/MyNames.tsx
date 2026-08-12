@@ -85,14 +85,14 @@ export function MyNames({
   return (
     <div>
       {/* Title and Add Name Button*/}
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-baseline sm:gap-3">
           <h2 className="text-2xl font-bold">My names</h2>
           <CopyUserId />
         </div>
         <button
           type="button"
-          className="btn btn-neutral btn-sm shadow-xs"
+          className="btn btn-neutral btn-sm shrink-0 shadow-xs"
           onClick={() => setAddOpen(true)}
         >
           <Plus className="size-4" /> Add Name

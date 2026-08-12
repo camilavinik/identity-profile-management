@@ -84,6 +84,15 @@ describe('Header', () => {
     expect(screen.getByText('test@email.com')).toBeInTheDocument();
   });
 
+  it('keeps the full title available for larger screens', () => {
+    renderHeader();
+
+    expect(screen.getByText('Identity Profile Management')).toHaveClass(
+      'hidden',
+      'sm:inline',
+    );
+  });
+
   it('disables search when the input is empty', () => {
     renderHeader();
 
