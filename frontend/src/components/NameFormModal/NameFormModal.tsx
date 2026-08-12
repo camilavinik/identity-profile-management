@@ -1,4 +1,4 @@
-import { Languages, Signature, Tag } from 'lucide-react';
+import { Info, Languages, Signature, Tag } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Context } from '../../hooks';
 import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
@@ -105,7 +105,7 @@ export function NameFormModal({
   return (
     <Modal open={open} onClose={handleClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
-        <Field label="Context">
+        <Field label="Context" tooltip="The situation where this name is used">
           <label className="select w-full">
             <Tag className="size-4 opacity-50 mr-0.5" />
             <select
@@ -125,7 +125,10 @@ export function NameFormModal({
           </label>
         </Field>
 
-        <Field label="Charset">
+        <Field
+          label="Charset"
+          tooltip="The alphabet or set of characters used to write this name"
+        >
           <label className="input w-full">
             <Languages className="size-4 opacity-50" />
             <input
@@ -151,7 +154,11 @@ export function NameFormModal({
           </label>
         </Field>
 
-        <Field label="Audio" optional>
+        <Field
+          label="Audio"
+          optional
+          tooltip="An optional recording of how this name is pronounced"
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -216,15 +223,25 @@ export function NameFormModal({
 function Field({
   label,
   optional,
+  tooltip,
   children,
 }: {
   label: string;
   optional?: boolean;
+  tooltip?: string;
   children: ReactNode;
 }) {
   return (
     <fieldset className="fieldset">
-      <legend className="fieldset-legend">{label}</legend>
+      <legend className="fieldset-legend flex items-center gap-1">
+        {label}
+        {tooltip && (
+          <span className="tooltip tooltip-right">
+            <span className="tooltip-content max-w-60 text-xs">{tooltip}</span>
+            <Info className="size-3 opacity-50" />
+          </span>
+        )}
+      </legend>
       {children}
       {optional && <p className="label">Optional</p>}
     </fieldset>

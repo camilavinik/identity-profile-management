@@ -44,6 +44,29 @@ describe('NameFormModal', () => {
     expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
   });
 
+  it('shows tooltips for context, charset and audio', () => {
+    render(
+      <NameFormModal
+        open
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        contexts={testContexts}
+      />,
+    );
+
+    expect(
+      screen.getByText('The situation where this name is used'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The alphabet or set of characters used to write this name',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('An optional recording of how this name is pronounced'),
+    ).toBeInTheDocument();
+  });
+
   it('uses custom title and submit label', () => {
     render(
       <NameFormModal
