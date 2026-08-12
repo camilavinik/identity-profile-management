@@ -1,15 +1,16 @@
-import { BookOpen, LogOut, Search, Users } from 'lucide-react';
+import { BookOpen, CircleHelp, LogOut, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../auth';
 import type { Context } from '../../hooks';
 import { API_DOCS_URL } from '../../lib/apiDocs';
+import { HowItWorksModal } from '../HowItWorksModal/HowItWorksModal';
 import { Options } from '../Options/Options';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { UserSearchModal } from '../UserSearchModal/UserSearchModal';
 
 export function Header({ contexts }: { contexts: Context[] }) {
-  const { logout, email } = useAuth();
+  const { logout, email, howItWorksOpen, setHowItWorksOpen } = useAuth();
   const { userId: searchedUserId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState(searchedUserId ?? '');
@@ -56,13 +57,19 @@ export function Header({ contexts }: { contexts: Context[] }) {
           <ThemeToggle />
           <Options>
             <li>
+              <button type="button" onClick={() => setHowItWorksOpen(true)}>
+                <CircleHelp className="size-4" />
+                How it works
+              </button>
+            </li>
+            <li>
               <a href={API_DOCS_URL} target="_blank" rel="noreferrer">
                 <BookOpen className="size-4" />
                 API Documentation
               </a>
             </li>
             <li>
-              <button onClick={logout}>
+              <button type="button" onClick={logout}>
                 <LogOut className="size-4" />
                 Log Out
               </button>
@@ -79,6 +86,10 @@ export function Header({ contexts }: { contexts: Context[] }) {
           onClose={() => navigate('/')}
         />
       )}
+      <HowItWorksModal
+        open={howItWorksOpen}
+        onClose={() => setHowItWorksOpen(false)}
+      />
     </header>
   );
 }

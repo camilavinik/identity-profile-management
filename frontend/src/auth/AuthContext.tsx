@@ -19,6 +19,8 @@ type AuthContextValue = {
   handleSignup: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  howItWorksOpen: boolean;
+  setHowItWorksOpen: (open: boolean) => void;
 };
 
 function decodeToken(token: string | null): {
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.getItem(TOKEN_KEY) || null,
   );
   const [loading, setLoading] = useState(false);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       );
       setToken(access_token);
+      setHowItWorksOpen(true);
       navigate('/');
     } finally {
       setLoading(false);
@@ -101,6 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handleSignup,
         logout,
         loading,
+        howItWorksOpen,
+        setHowItWorksOpen,
       }}
     >
       {children}

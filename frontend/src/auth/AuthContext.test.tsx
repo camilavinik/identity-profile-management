@@ -93,6 +93,7 @@ describe('AuthProvider', () => {
     expect(result.current.token).toBe(token);
     expect(apiFetch).toHaveBeenCalledWith('/auth/signup', expect.any(Object));
     expect(navigate).toHaveBeenCalledWith('/');
+    expect(result.current.howItWorksOpen).toBe(true);
   });
 
   it('logs out and clears the token', async () => {

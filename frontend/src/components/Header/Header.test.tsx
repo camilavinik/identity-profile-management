@@ -8,12 +8,15 @@ import { mockShowModal, mockAudioApi } from '../../test/mocks';
 import { Header } from './Header';
 
 const logout = vi.fn();
+const setHowItWorksOpen = vi.fn();
 const fetchUserNamesById = vi.fn();
 
 vi.mock('../../auth', () => ({
   useAuth: () => ({
     logout,
     email: 'test@email.com',
+    howItWorksOpen: false,
+    setHowItWorksOpen,
   }),
 }));
 
@@ -45,6 +48,7 @@ describe('Header', () => {
   beforeEach(() => {
     // Reset mocks
     logout.mockReset();
+    setHowItWorksOpen.mockReset();
     fetchUserNamesById.mockReset().mockResolvedValue([]);
 
     // Reset theme state
@@ -112,6 +116,14 @@ describe('Header', () => {
     expect(
       screen.getByRole('link', { name: /API Documentation/i }),
     ).toHaveAttribute('href', API_DOCS_URL);
+  });
+
+  it('opens How it works from the options menu', async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    await user.click(screen.getByRole('button', { name: /How it works/i }));
+    expect(setHowItWorksOpen).toHaveBeenCalledWith(true);
   });
 
   it('logs out when Log Out is clicked', async () => {

@@ -7,6 +7,7 @@ import { CopyUserId } from './CopyUserId/CopyUserId';
 import { ErrorAlert } from './ErrorAlert/ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert/EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer/AudioPlayer';
+import { HowItWorksModal } from './HowItWorksModal/HowItWorksModal';
 import { Modal } from './Modal/Modal';
 import { NameCard } from './NameCard/NameCard';
 import { NameFormModal } from './NameFormModal/NameFormModal';
@@ -24,6 +25,7 @@ export {
   ErrorAlert,
   EmptyStateAlert,
   AudioPlayer,
+  HowItWorksModal,
   Modal,
   NameCard,
   NameFormModal,
