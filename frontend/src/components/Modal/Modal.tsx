@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useCallback, type ReactNode } from 'react';
 
 export function Modal({
@@ -20,12 +21,20 @@ export function Modal({
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
       <div className="modal-box">
-        {title && <h3 className="text-lg font-bold">{title}</h3>}
+        <div className="flex justify-between gap-2">
+          {title && <h3 className="text-lg font-bold">{title}</h3>}
+          <button
+            type="button"
+            className="btn btn-xs btn-circle btn-ghost"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <X className="size-4" />
+          </button>
+        </div>
         {children}
       </div>
-      <form method="dialog" className="modal-backdrop">
-        <button type="submit" aria-label="Close" />
-      </form>
+      <div className="modal-backdrop" />
     </dialog>
   );
 }

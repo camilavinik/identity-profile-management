@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockShowModal } from '../../test/mocks';
 import { Modal } from './Modal';
@@ -44,13 +45,27 @@ describe('Modal', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('has a backdrop close control', () => {
+  it('calls onClose when the X button is clicked', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
     render(
+      <Modal open onClose={onClose} title="Title">
+        Body
+      </Modal>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('does not use a backdrop form to close', () => {
+    const { container } = render(
       <Modal open onClose={vi.fn()} title="Title">
         Body
       </Modal>,
     );
 
-    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(container.querySelector('form.modal-backdrop')).toBeNull();
+    expect(container.querySelector('div.modal-backdrop')).toBeInTheDocument();
   });
 });
