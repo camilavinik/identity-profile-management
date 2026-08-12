@@ -6,6 +6,7 @@ import { MailModule } from 'src/mail/mail.module';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { RateLimitService } from './rate-limit.service';
 import type { StringValue } from 'ms';
 
 @Module({
@@ -24,6 +25,10 @@ import type { StringValue } from 'ms';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }],
+  providers: [
+    AuthService,
+    RateLimitService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+  ],
 })
 export class AuthModule {}
