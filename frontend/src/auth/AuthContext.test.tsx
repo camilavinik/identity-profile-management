@@ -96,6 +96,42 @@ describe('AuthProvider', () => {
     expect(result.current.howItWorksOpen).toBe(true);
   });
 
+  it('requests a password reset email', async () => {
+    apiFetch.mockResolvedValue({
+      message:
+        'A password reset email has been sent to the provided email address if the user exists.',
+    });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    let message = '';
+    await act(async () => {
+      message = await result.current.handleForgotPassword('test@email.com');
+    });
+
+    expect(apiFetch).toHaveBeenCalledWith('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'test@email.com' }),
+    });
+    expect(message).toContain('password reset email has been sent');
+  });
+
+  it('resets the password and navigates to login', async () => {
+    apiFetch.mockResolvedValue({ message: 'Password has been updated' });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await result.current.handleResetPassword('reset-token', 'new-password');
+    });
+
+    expect(apiFetch).toHaveBeenCalledWith('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token: 'reset-token', password: 'new-password' }),
+    });
+    expect(navigate).toHaveBeenCalledWith('/login', { replace: true });
+  });
+
   it('logs out and clears the token', async () => {
     localStorage.setItem(TOKEN_KEY, token);
 

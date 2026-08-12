@@ -7,12 +7,16 @@ describe('AuthController', () => {
   let authService: {
     signup: jest.Mock;
     login: jest.Mock;
+    forgotPassword: jest.Mock;
+    resetPassword: jest.Mock;
   };
 
   beforeEach(async () => {
     authService = {
       signup: jest.fn(),
       login: jest.fn(),
+      forgotPassword: jest.fn(),
+      resetPassword: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,6 +66,38 @@ describe('AuthController', () => {
       // Check if the login was called with the email and password
       expect(authService.login).toHaveBeenCalledWith(dto.email, dto.password);
       expect(result).toBe(tokenResponse);
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should call authService.forgotPassword with email', async () => {
+      const response = {
+        message:
+          'A password reset email has been sent to the provided email address if the user exists.',
+      };
+      authService.forgotPassword.mockResolvedValue(response);
+
+      const dto = { email: 'test@test.com' };
+      const result = await controller.forgotPassword(dto);
+
+      expect(authService.forgotPassword).toHaveBeenCalledWith(dto.email);
+      expect(result).toBe(response);
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should call authService.resetPassword with token and password', async () => {
+      const response = { message: 'Password has been updated' };
+      authService.resetPassword.mockResolvedValue(response);
+
+      const dto = { token: 'reset-token', password: 'new-password' };
+      const result = await controller.resetPassword(dto);
+
+      expect(authService.resetPassword).toHaveBeenCalledWith(
+        dto.token,
+        dto.password,
+      );
+      expect(result).toBe(response);
     });
   });
 });

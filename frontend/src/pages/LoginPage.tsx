@@ -1,5 +1,6 @@
 import { KeyRound, Mail } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { ApiError } from '../lib/api';
 import { Layout } from './layout';
@@ -64,6 +65,11 @@ export function LoginPage() {
             required
           />
         </label>
+        <div className="mt-1.5 text-right">
+          <Link to="/forgot-password" className="link link-hover text-sm">
+            Forgot password?
+          </Link>
+        </div>
       </div>
     </Layout>
   );

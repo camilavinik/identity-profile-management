@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { MailModule } from 'src/mail/mail.module';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -9,6 +10,7 @@ import type { StringValue } from 'ms';
 
 @Module({
   imports: [
+    MailModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

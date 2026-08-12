@@ -17,6 +17,8 @@ type AuthContextValue = {
   userId: string | null;
   handleLogin: (credentials: LoginCredentials) => Promise<void>;
   handleSignup: (credentials: LoginCredentials) => Promise<void>;
+  handleForgotPassword: (email: string) => Promise<string>;
+  handleResetPassword: (token: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
   howItWorksOpen: boolean;
@@ -91,6 +93,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const handleForgotPassword = async (email: string) => {
+    setLoading(true);
+    try {
+      const result = await apiFetch<{ message: string }>(
+        '/auth/forgot-password',
+        {
+          method: 'POST',
+          body: JSON.stringify({ email }),
+        },
+      );
+      return result.message;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (token: string, password: string) => {
+    setLoading(true);
+    try {
+      await apiFetch<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
+      });
+      navigate('/login', { replace: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => setToken(null);
 
   const { email, userId } = decodeToken(token);
@@ -103,6 +134,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId,
         handleLogin,
         handleSignup,
+        handleForgotPassword,
+        handleResetPassword,
         logout,
         loading,
         howItWorksOpen,
