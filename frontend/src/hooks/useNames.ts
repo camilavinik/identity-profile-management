@@ -68,6 +68,12 @@ export function useNames() {
     [],
   );
 
+  const fetchUserNamesByEmail = useCallback(
+    (email: string) =>
+      apiFetch<NameEntry[]>(`/user/by-email/${encodeURIComponent(email)}/name`),
+    [],
+  );
+
   const uploadAudio = useCallback((nameId: string, file: File) => {
     const form = new FormData();
     form.append('file', file);
@@ -129,6 +135,7 @@ export function useNames() {
     fetchHistory,
     fetchContexts,
     fetchUserNamesById,
+    fetchUserNamesByEmail,
     createName,
     updateName,
     deleteName,

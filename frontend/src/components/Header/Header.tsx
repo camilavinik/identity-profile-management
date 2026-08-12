@@ -11,9 +11,10 @@ import { UserSearchModal } from '../UserSearchModal/UserSearchModal';
 
 export function Header({ contexts }: { contexts: Context[] }) {
   const { logout, email, howItWorksOpen, setHowItWorksOpen } = useAuth();
-  const { userId: searchedUserId } = useParams<{ userId: string }>();
+  const { userId: searchParam } = useParams<{ userId?: string }>();
+  const searched = searchParam ? decodeURIComponent(searchParam) : undefined;
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState(searchedUserId ?? '');
+  const [searchValue, setSearchValue] = useState(searched ?? '');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +22,7 @@ export function Header({ contexts }: { contexts: Context[] }) {
     const trimmed = searchValue.trim();
     if (!trimmed) return;
 
-    navigate(`/${trimmed}`);
+    navigate(`/${encodeURIComponent(trimmed)}`);
   };
 
   return (
@@ -38,7 +39,7 @@ export function Header({ contexts }: { contexts: Context[] }) {
             <Users className="size-4 opacity-50" />
             <input
               type="search"
-              placeholder="Find another user by id"
+              placeholder="Find user by id or email"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
             />
@@ -77,11 +78,11 @@ export function Header({ contexts }: { contexts: Context[] }) {
           </Options>
         </div>
       </div>
-      {searchedUserId && (
+      {searched && (
         <UserSearchModal
-          key={searchedUserId}
+          key={searched}
           open
-          userId={searchedUserId}
+          searched={searched}
           contexts={contexts}
           onClose={() => navigate('/')}
         />

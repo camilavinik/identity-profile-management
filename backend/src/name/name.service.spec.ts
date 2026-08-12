@@ -49,7 +49,7 @@ describe('NameService', () => {
       findUnique: jest.Mock;
       update: jest.Mock;
     };
-    user: { findUnique: jest.Mock };
+    user: { findUnique: jest.Mock; findFirst: jest.Mock };
     $transaction: jest.Mock;
   };
   let tx: {
@@ -77,7 +77,7 @@ describe('NameService', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
       },
-      user: { findUnique: jest.fn() },
+      user: { findUnique: jest.fn(), findFirst: jest.fn() },
       $transaction: jest.fn(),
     };
     tx = {
@@ -364,6 +364,63 @@ describe('NameService', () => {
 
       // Check findMany was not called
       expect(prisma.nameEntry.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('query by email', () => {
+    it('should throw NotFoundException if the email does not match a user', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+
+      await expect(service.queryByEmail('missing@test.com')).rejects.toThrow(
+        NotFoundException,
+      );
+
+      expect(prisma.nameEntry.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should return name entries for the user with that email (case insensitive)', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'target-user-id' });
+
+      const nameEntriesData = [
+        {
+          id: 'entry-1',
+          value: 'name 1',
+          charset: 'charset 1',
+          audio_key: null,
+          context: { name: 'Work', description: 'Work context' },
+        },
+      ];
+      prisma.nameEntry.findMany.mockResolvedValue(nameEntriesData);
+
+      const result = await service.queryByEmail('User@Test.com');
+
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          email: { equals: 'user@test.com', mode: 'insensitive' },
+        },
+        select: { id: true },
+      });
+      expect(result).toEqual(nameEntriesData.map(withAudioUrl));
+    });
+
+    it('should filter by context when contextKey is provided', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: 'target-user-id' });
+
+      const contextData = mockContext();
+      prisma.context.findUnique.mockResolvedValue(contextData);
+      prisma.nameEntry.findMany.mockResolvedValue([]);
+
+      await service.queryByEmail('user@test.com', contextData.key);
+
+      expect(prisma.nameEntry.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            user_id: 'target-user-id',
+            context_id: contextData.id,
+            deleted_at: null,
+          },
+        }),
+      );
     });
   });
 
@@ -1187,9 +1244,9 @@ describe('NameService', () => {
     it('should throw NotFoundException when the entry does not exist', async () => {
       prisma.nameEntry.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.remove('test-user', 'missing-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.remove('test-user', 'missing-id')).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(tx.nameEntry.update).not.toHaveBeenCalled();
     });

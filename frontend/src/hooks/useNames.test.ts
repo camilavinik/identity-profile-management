@@ -34,6 +34,12 @@ describe('useNames', () => {
     apiFetch.mockResolvedValueOnce([testName]);
     await result.current.fetchUserNamesById('user-1');
     expect(apiFetch).toHaveBeenCalledWith('/user/user-1/name');
+
+    apiFetch.mockResolvedValueOnce([testName]);
+    await result.current.fetchUserNamesByEmail('user@test.com');
+    expect(apiFetch).toHaveBeenCalledWith(
+      `/user/by-email/${encodeURIComponent('user@test.com')}/name`,
+    );
   });
 
   it('creates a name without uploading audio', async () => {

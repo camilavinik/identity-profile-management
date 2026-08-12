@@ -6,6 +6,8 @@ import { testContexts } from '../../test/fixtures';
 import { mockShowModal, mockAudioApi } from '../../test/mocks';
 import { UserSearchModal } from './UserSearchModal';
 
+const TEST_UUID = '11111111-1111-1111-1111-111111111111';
+
 const names: NameEntry[] = [
   {
     id: '1',
@@ -18,6 +20,7 @@ const names: NameEntry[] = [
 ];
 
 const fetchUserNamesById = vi.fn();
+const fetchUserNamesByEmail = vi.fn();
 
 vi.mock('../../hooks', async () => {
   const actual =
@@ -26,6 +29,7 @@ vi.mock('../../hooks', async () => {
     ...actual,
     useNames: () => ({
       fetchUserNamesById,
+      fetchUserNamesByEmail,
     }),
   };
 });
@@ -34,6 +38,7 @@ describe('UserSearchModal', () => {
   beforeEach(() => {
     // Reset mock
     fetchUserNamesById.mockReset();
+    fetchUserNamesByEmail.mockReset();
 
     // Mock the showModal method for dialogs
     mockShowModal();
@@ -45,23 +50,59 @@ describe('UserSearchModal', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows the user id in the title', async () => {
+  it('shows the searched value in the title', async () => {
     fetchUserNamesById.mockResolvedValue([]);
 
     render(
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );
 
     expect(screen.getByText(/Find user/)).toBeInTheDocument();
-    expect(screen.getByText(/user-1/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(TEST_UUID))).toBeInTheDocument();
     await waitFor(() =>
-      expect(fetchUserNamesById).toHaveBeenCalledWith('user-1'),
+      expect(fetchUserNamesById).toHaveBeenCalledWith(TEST_UUID),
     );
+  });
+
+  it('fetches names by email when searched is an email', async () => {
+    fetchUserNamesByEmail.mockResolvedValue([]);
+
+    render(
+      <UserSearchModal
+        open
+        onClose={vi.fn()}
+        searched="user@test.com"
+        contexts={testContexts}
+      />,
+    );
+
+    expect(screen.getByText(/user@test.com/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchUserNamesByEmail).toHaveBeenCalledWith('user@test.com'),
+    );
+    expect(fetchUserNamesById).not.toHaveBeenCalled();
+  });
+
+  it('shows a validation error without fetching when searched is invalid', () => {
+    render(
+      <UserSearchModal
+        open
+        onClose={vi.fn()}
+        searched="not-a-uuid-or-email"
+        contexts={testContexts}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Enter a valid user id (UUID) or email address',
+    );
+    expect(fetchUserNamesById).not.toHaveBeenCalled();
+    expect(fetchUserNamesByEmail).not.toHaveBeenCalled();
   });
 
   it('shows loading skeletons while fetching', () => {
@@ -71,7 +112,7 @@ describe('UserSearchModal', () => {
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );
@@ -86,7 +127,7 @@ describe('UserSearchModal', () => {
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );
@@ -103,7 +144,7 @@ describe('UserSearchModal', () => {
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );
@@ -120,7 +161,7 @@ describe('UserSearchModal', () => {
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );
@@ -137,7 +178,7 @@ describe('UserSearchModal', () => {
       <UserSearchModal
         open
         onClose={vi.fn()}
-        userId="user-1"
+        searched={TEST_UUID}
         contexts={testContexts}
       />,
     );

@@ -9,6 +9,14 @@ import { QueryNameEntryDto } from './dto/query-name-entry.dto';
 export class UserNameController {
   constructor(private readonly nameService: NameService) {}
 
+  @Get('by-email/:email/name')
+  findByEmail(
+    @Param('email') email: string,
+    @Query() query: QueryNameEntryDto,
+  ) {
+    return this.nameService.queryByEmail(email, query.context);
+  }
+
   @Get(':id/name')
   findByUser(
     @Param('id', ParseUUIDPipe) id: string,

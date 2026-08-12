@@ -11,30 +11,54 @@ import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
 import { Modal } from '../Modal/Modal';
 import { NameCard } from '../NameCard/NameCard';
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+
+function isUuid(value: string) {
+  return UUID_PATTERN.test(value);
+}
+
+function isEmail(value: string) {
+  return EMAIL_PATTERN.test(value);
+}
+
 export function UserSearchModal({
   open,
   onClose,
-  userId,
+  searched,
   contexts,
 }: {
   open: boolean;
   onClose: () => void;
-  userId: string;
+  searched: string;
   contexts: Context[];
 }) {
-  const { fetchUserNamesById } = useNames();
-  const [names, setNames] = useState<NameEntry[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { fetchUserNamesById, fetchUserNamesByEmail } = useNames();
+  const emailSearch = isEmail(searched);
+  const valid = emailSearch || isUuid(searched);
+  const validationError = valid
+    ? null
+    : 'Enter a valid user id (UUID) or email address';
 
+  const [names, setNames] = useState<NameEntry[] | null>(null);
+  const [loading, setLoading] = useState(valid);
+  const [error, setError] = useState<string | null>(null);
   const [filteredNames, filterProps] = useContextFilter(names ?? [], contexts);
+  const displayError = validationError ?? error;
 
   useEffect(() => {
-    fetchUserNamesById(userId)
+    if (!valid) return;
+
+    const fetchNames = emailSearch
+      ? fetchUserNamesByEmail(searched)
+      : fetchUserNamesById(searched);
+
+    fetchNames
       .then(setNames)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [userId, fetchUserNamesById]);
+  }, [searched, valid, emailSearch, fetchUserNamesById, fetchUserNamesByEmail]);
 
   return (
     <Modal
@@ -44,14 +68,14 @@ export function UserSearchModal({
         <>
           Find user{' '}
           <span className="text-sm font-normal text-gray-500 break-all">
-            ({userId})
+            ({emailSearch ? searched.toLowerCase() : searched})
           </span>
         </>
       }
     >
       <div className="flex flex-col gap-3 mt-4">
         {/* Filters */}
-        {!loading && !error && names && names.length > 0 && (
+        {!loading && !displayError && names && names.length > 0 && (
           <ContextFilter {...filterProps} size="xs" />
         )}
 
@@ -65,16 +89,16 @@ export function UserSearchModal({
         )}
 
         {/* Error State */}
-        {error && <ErrorAlert content={error} />}
+        {displayError && <ErrorAlert content={displayError} />}
 
         {/* Empty State */}
-        {!loading && !error && names && names.length === 0 && (
+        {!loading && !displayError && names && names.length === 0 && (
           <EmptyStateAlert content="This user has no names yet" />
         )}
 
         {/* No names match the selected filters */}
         {!loading &&
-          !error &&
+          !displayError &&
           names &&
           names.length > 0 &&
           filteredNames.length === 0 && (
@@ -82,7 +106,7 @@ export function UserSearchModal({
           )}
 
         {/* Filtered Names */}
-        {!loading && !error && filteredNames.length > 0 && (
+        {!loading && !displayError && filteredNames.length > 0 && (
           <ul className="flex flex-col gap-3">
             {filteredNames.map((n) => (
               <li key={n.id}>

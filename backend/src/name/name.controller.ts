@@ -103,10 +103,7 @@ export class NameController {
   }
 
   @Delete(':id')
-  remove(
-    @CurrentUser() user: JwtUser,
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  remove(@CurrentUser() user: JwtUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.nameService.remove(user.sub, id);
   }
 }

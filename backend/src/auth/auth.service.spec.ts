@@ -15,7 +15,7 @@ describe('AuthService', () => {
   let prisma: {
     user: {
       create: jest.Mock;
-      findUnique: jest.Mock;
+      findFirst: jest.Mock;
     };
   };
   let jwtService: {
@@ -25,7 +25,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     prisma = {
       user: {
-        findUnique: jest.fn(),
+        findFirst: jest.fn(),
         create: jest.fn(),
       },
     };
@@ -51,7 +51,7 @@ describe('AuthService', () => {
   describe('signup', () => {
     it('should sign up a new user', async () => {
       // Mock user does not exist yet, password hashing, user creation, and token generation
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.user.findFirst.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       prisma.user.create.mockResolvedValue({
         id: 'test-user-id',
@@ -60,9 +60,14 @@ describe('AuthService', () => {
       jwtService.signAsync.mockResolvedValue('test-token');
 
       // Try to sign up a new user
-      const result = await service.signup('test@test.com', 'test-password');
+      const result = await service.signup('Test@test.com', 'test-password');
 
       // Check if the user was created with the hashed password
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          email: { equals: 'test@test.com', mode: 'insensitive' },
+        },
+      });
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: { email: 'test@test.com', password_hash: 'hashed-password' },
       });
@@ -76,14 +81,14 @@ describe('AuthService', () => {
 
     it('should throw an error if the user already exists', async () => {
       // Mock user already exists
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.user.findFirst.mockResolvedValue({
         id: 'existing-id',
         email: 'test@test.com',
       });
 
       // Try to sign up and expect it to throw
       await expect(
-        service.signup('test@test.com', 'test-password'),
+        service.signup('TEST@test.com', 'test-password'),
       ).rejects.toThrow(ConflictException);
 
       // Check the create was never called
@@ -99,14 +104,19 @@ describe('AuthService', () => {
         email: 'test@test.com',
         password_hash: 'hashed-password',
       };
-      prisma.user.findUnique.mockResolvedValue(existingUser);
+      prisma.user.findFirst.mockResolvedValue(existingUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       jwtService.signAsync.mockResolvedValue('test-token');
 
       // Try to login
-      const result = await service.login('test@test.com', 'test-password');
+      const result = await service.login('TEST@test.com', 'test-password');
 
       // Check if the user was logged in
+      expect(prisma.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          email: { equals: 'test@test.com', mode: 'insensitive' },
+        },
+      });
       expect(result).toEqual({
         access_token: 'test-token',
         email: 'test@test.com',
@@ -115,7 +125,7 @@ describe('AuthService', () => {
 
     it('should throw an error if the user does not exist', async () => {
       // Mock user does not exist
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.user.findFirst.mockResolvedValue(null);
 
       // Try to log in and expect it to throw
       await expect(
@@ -125,7 +135,7 @@ describe('AuthService', () => {
 
     it('should throw an error if the password is incorrect', async () => {
       // Mock user exists and password is incorrect
-      prisma.user.findUnique.mockResolvedValue({
+      prisma.user.findFirst.mockResolvedValue({
         id: 'test-user-id',
         email: 'test@test.com',
         password_hash: 'hashed-password',

@@ -31,9 +31,9 @@ describe('HowItWorksModal', () => {
       screen.getByText((_, element) =>
         Boolean(
           element?.tagName === 'P' &&
-            element.textContent?.includes(
-              'Each name has a context for where it is used',
-            ),
+          element.textContent?.includes(
+            'Each name has a context for where it is used',
+          ),
         ),
       ),
     ).toBeInTheDocument();

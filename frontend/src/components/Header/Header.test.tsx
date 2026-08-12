@@ -10,6 +10,7 @@ import { Header } from './Header';
 const logout = vi.fn();
 const setHowItWorksOpen = vi.fn();
 const fetchUserNamesById = vi.fn();
+const fetchUserNamesByEmail = vi.fn();
 let howItWorksOpen = false;
 
 vi.mock('../../auth', () => ({
@@ -30,6 +31,7 @@ vi.mock('../../hooks', async () => {
     ...actual,
     useNames: () => ({
       fetchUserNamesById,
+      fetchUserNamesByEmail,
     }),
   };
 });
@@ -47,12 +49,15 @@ function renderHeader(initialPath = '/') {
   return { ...view, router };
 }
 
+const TEST_UUID = '11111111-1111-1111-1111-111111111111';
+
 describe('Header', () => {
   beforeEach(() => {
     // Reset mocks
     logout.mockReset();
     setHowItWorksOpen.mockReset();
     fetchUserNamesById.mockReset().mockResolvedValue([]);
+    fetchUserNamesByEmail.mockReset().mockResolvedValue([]);
     howItWorksOpen = false;
 
     // Reset theme state
@@ -90,21 +95,40 @@ describe('Header', () => {
     const { router } = renderHeader();
 
     await user.type(
-      screen.getByPlaceholderText('Find another user by id'),
-      'user-1',
+      screen.getByPlaceholderText('Find user by id or email'),
+      TEST_UUID,
     );
     await user.click(screen.getByRole('button', { name: 'Search' }));
 
-    expect(router.state.location.pathname).toBe('/user-1');
+    expect(router.state.location.pathname).toBe(`/${TEST_UUID}`);
     expect(await screen.findByText(/Find user/)).toBeInTheDocument();
-    expect(fetchUserNamesById).toHaveBeenCalledWith('user-1');
+    expect(fetchUserNamesById).toHaveBeenCalledWith(TEST_UUID);
+  });
+
+  it('searches by email when the query is an email', async () => {
+    const user = userEvent.setup();
+    const { router } = renderHeader();
+
+    await user.type(
+      screen.getByPlaceholderText('Find user by id or email'),
+      'user@test.com',
+    );
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+
+    expect(router.state.location.pathname).toBe(
+      `/${encodeURIComponent('user@test.com')}`,
+    );
+    expect(await screen.findByText(/Find user/)).toBeInTheDocument();
+    expect(screen.getByText(/user@test.com/)).toBeInTheDocument();
+    expect(fetchUserNamesByEmail).toHaveBeenCalledWith('user@test.com');
+    expect(fetchUserNamesById).not.toHaveBeenCalled();
   });
 
   it('does not navigate when search is whitespace string', async () => {
     const user = userEvent.setup();
     const { router } = renderHeader();
 
-    const input = screen.getByPlaceholderText('Find another user by id');
+    const input = screen.getByPlaceholderText('Find user by id or email');
     await user.type(input, '   ');
     expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
 
@@ -148,10 +172,10 @@ describe('Header', () => {
   });
 
   it('opens the user search modal when a user id is in the url', async () => {
-    renderHeader('/user-1');
+    renderHeader(`/${TEST_UUID}`);
 
     expect(await screen.findByText(/Find user/)).toBeInTheDocument();
-    expect(screen.getByText(/user-1/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(TEST_UUID))).toBeInTheDocument();
   });
 
   it('toggles between light and dark mode when theme button is clicked', async () => {
@@ -174,7 +198,7 @@ describe('Header', () => {
   });
 
   it('navigates home when the user search modal closes', async () => {
-    const { router } = renderHeader('/user-1');
+    const { router } = renderHeader(`/${TEST_UUID}`);
 
     expect(await screen.findByText(/Find user/)).toBeInTheDocument();
 

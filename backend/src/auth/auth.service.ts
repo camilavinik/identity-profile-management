@@ -18,8 +18,9 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ access_token: string; email: string }> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
+    const normalizedEmail = email.toLowerCase();
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
     });
     if (existingUser) {
       throw new ConflictException('Email already in use');
@@ -27,7 +28,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const createdUser = await this.prisma.user.create({
-      data: { email, password_hash: hashedPassword },
+      data: { email: normalizedEmail, password_hash: hashedPassword },
     });
 
     return this.generateAccessToken(createdUser.id, createdUser.email);
@@ -37,8 +38,10 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ access_token: string; email: string }> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: { equals: email.toLowerCase(), mode: 'insensitive' },
+      },
     });
 
     const passwordCorrect = user?.password_hash

@@ -110,6 +110,18 @@ export class NameService {
     return this.query(userId, contextKey, false);
   }
 
+  async queryByEmail(email: string, contextKey?: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: email.toLowerCase(), mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with email '${email}' not found`);
+    }
+
+    return this.query(user.id, contextKey, false);
+  }
+
   async update(userId: string, id: string, dto: UpdateNameEntryDto) {
     // Validate that at least one field is provided
     if (

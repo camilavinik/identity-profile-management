@@ -6,11 +6,13 @@ describe('UserNameController', () => {
   let controller: UserNameController;
   let nameService: {
     queryByUser: jest.Mock;
+    queryByEmail: jest.Mock;
   };
 
   beforeEach(async () => {
     nameService = {
       queryByUser: jest.fn(),
+      queryByEmail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +25,23 @@ describe('UserNameController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('findByEmail', () => {
+    it('should call nameService.queryByEmail with the email and context', async () => {
+      const entries = [{ id: 'entry-1', value: 'test' }];
+      nameService.queryByEmail.mockResolvedValue(entries);
+
+      const result = await controller.findByEmail('user@test.com', {
+        context: 'legal',
+      });
+
+      expect(nameService.queryByEmail).toHaveBeenCalledWith(
+        'user@test.com',
+        'legal',
+      );
+      expect(result).toBe(entries);
+    });
   });
 
   describe('findByUser', () => {
