@@ -8,6 +8,7 @@ import { ErrorAlert } from './ErrorAlert/ErrorAlert';
 import { EmptyStateAlert } from './EmptyStateAlert/EmptyStateAlert';
 import { AudioPlayer } from './AudioPlayer/AudioPlayer';
 import { HowItWorksModal } from './HowItWorksModal/HowItWorksModal';
+import { ConfirmationModal } from './ConfirmationModal/ConfirmationModal';
 import { Modal } from './Modal/Modal';
 import { NameCard } from './NameCard/NameCard';
 import { NameFormModal } from './NameFormModal/NameFormModal';
@@ -26,6 +27,7 @@ export {
   EmptyStateAlert,
   AudioPlayer,
   HowItWorksModal,
+  ConfirmationModal,
   Modal,
   NameCard,
   NameFormModal,

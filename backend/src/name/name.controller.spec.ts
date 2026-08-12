@@ -13,6 +13,7 @@ describe('NameController', () => {
     update: jest.Mock;
     uploadAudio: jest.Mock;
     removeAudio: jest.Mock;
+    remove: jest.Mock;
   };
   const mockUser: JwtUser = { sub: 'test-user-id', email: 'test@test.com' };
 
@@ -33,6 +34,7 @@ describe('NameController', () => {
       update: jest.fn(),
       uploadAudio: jest.fn(),
       removeAudio: jest.fn(),
+      remove: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -199,6 +201,17 @@ describe('NameController', () => {
         'entry-id',
       );
       expect(result).toBe(updatedEntry);
+    });
+  });
+
+  describe('remove', () => {
+    it('should call nameService.remove with the user id and entry id', async () => {
+      nameService.remove.mockResolvedValue(undefined);
+
+      const result = await controller.remove(mockUser, 'entry-id');
+
+      expect(nameService.remove).toHaveBeenCalledWith(mockUser.sub, 'entry-id');
+      expect(result).toBeUndefined();
     });
   });
 });

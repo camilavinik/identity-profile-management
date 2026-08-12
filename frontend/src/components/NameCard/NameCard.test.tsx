@@ -58,6 +58,16 @@ describe('NameCard', () => {
     expect(onEdit).toHaveBeenCalledOnce();
   });
 
+  it('shows delete option and calls onDelete when clicked', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn();
+
+    render(<NameCard name={name} onEdit={vi.fn()} onDelete={onDelete} />);
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(onDelete).toHaveBeenCalledOnce();
+  });
+
   it('does not show edit options without onEdit', () => {
     render(<NameCard name={name} />);
     expect(

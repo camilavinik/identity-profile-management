@@ -1165,4 +1165,57 @@ describe('NameService', () => {
       expect(storageService.delete).toHaveBeenCalledWith('orphan-key');
     });
   });
+
+  describe('remove name entry', () => {
+    it('should soft-delete an active name entry', async () => {
+      prisma.nameEntry.findUnique.mockResolvedValue({ id: 'test-entry-id' });
+      tx.nameEntry.count.mockResolvedValue(0);
+
+      await service.remove('test-user', 'test-entry-id');
+
+      expect(prisma.nameEntry.findUnique).toHaveBeenCalledWith({
+        where: { id: 'test-entry-id', user_id: 'test-user', deleted_at: null },
+        select: { id: true },
+      });
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: 'test-entry-id' },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+      expect(tx.nameEntry.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when the entry does not exist', async () => {
+      prisma.nameEntry.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.remove('test-user', 'missing-id'),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(tx.nameEntry.update).not.toHaveBeenCalled();
+    });
+
+    it('should cleanup oldest history when soft-deleted count is at the limit', async () => {
+      prisma.nameEntry.findUnique.mockResolvedValue({ id: 'test-entry-id' });
+      tx.nameEntry.count.mockResolvedValue(50);
+      tx.nameEntry.findMany.mockResolvedValue([
+        { id: 'oldest-entry-id', audio_key: null },
+      ]);
+
+      await service.remove('test-user', 'test-entry-id');
+
+      expect(tx.nameEntry.findMany).toHaveBeenCalledWith({
+        where: { user_id: 'test-user', deleted_at: { not: null } },
+        orderBy: { deleted_at: 'asc' },
+        take: 1,
+        select: { id: true, audio_key: true },
+      });
+      expect(tx.nameEntry.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: ['oldest-entry-id'] } },
+      });
+      expect(tx.nameEntry.update).toHaveBeenCalledWith({
+        where: { id: 'test-entry-id' },
+        data: { deleted_at: expect.any(Date) as Date },
+      });
+    });
+  });
 });

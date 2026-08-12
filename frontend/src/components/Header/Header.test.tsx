@@ -10,12 +10,15 @@ import { Header } from './Header';
 const logout = vi.fn();
 const setHowItWorksOpen = vi.fn();
 const fetchUserNamesById = vi.fn();
+let howItWorksOpen = false;
 
 vi.mock('../../auth', () => ({
   useAuth: () => ({
     logout,
     email: 'test@email.com',
-    howItWorksOpen: false,
+    get howItWorksOpen() {
+      return howItWorksOpen;
+    },
     setHowItWorksOpen,
   }),
 }));
@@ -50,6 +53,7 @@ describe('Header', () => {
     logout.mockReset();
     setHowItWorksOpen.mockReset();
     fetchUserNamesById.mockReset().mockResolvedValue([]);
+    howItWorksOpen = false;
 
     // Reset theme state
     localStorage.clear();
@@ -124,6 +128,15 @@ describe('Header', () => {
 
     await user.click(screen.getByRole('button', { name: /How it works/i }));
     expect(setHowItWorksOpen).toHaveBeenCalledWith(true);
+  });
+
+  it('Got it button closes the How it works modal', async () => {
+    const user = userEvent.setup();
+    howItWorksOpen = true;
+    renderHeader();
+
+    await user.click(screen.getByRole('button', { name: 'Got it' }));
+    expect(setHowItWorksOpen).toHaveBeenCalledWith(false);
   });
 
   it('logs out when Log Out is clicked', async () => {

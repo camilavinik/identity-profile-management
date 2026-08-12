@@ -400,6 +400,38 @@ export class NameService {
     });
   }
 
+  async remove(userId: string, id: string) {
+    const nameEntry = await this.prisma.nameEntry.findUnique({
+      where: { id, user_id: userId, deleted_at: null },
+      select: { id: true },
+    });
+
+    // Throw error if the entry does not exist
+    if (!nameEntry) {
+      throw new NotFoundException(
+        `Name entry with id '${id}' not found for user '${userId}'`,
+      );
+    }
+
+    // Soft delete the entry and get the orphaned audio keys
+    const orphanedAudioKeys = await this.prisma.$transaction(async (tx) => {
+      const orphanedAudioKeys = await this.enforceMaxSoftDeletedNameEntries(
+        userId,
+        tx,
+      );
+
+      await tx.nameEntry.update({
+        where: { id },
+        data: { deleted_at: new Date() },
+      });
+
+      return orphanedAudioKeys;
+    });
+
+    // Cleanup orphaned R2 objects after the DB tx commits
+    await this.cleanupOrphanedAudios(orphanedAudioKeys);
+  }
+
   private async addAudioUrl<T extends { audio_key: string | null }>(
     entry: T,
   ): Promise<T & { audio_url: string | null }> {

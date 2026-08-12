@@ -149,4 +149,12 @@ describe('useNames', () => {
       method: 'DELETE',
     });
   });
+
+  it('deletes a name entry', async () => {
+    const { result } = renderHook(() => useNames());
+    apiFetch.mockResolvedValueOnce(undefined);
+
+    await expect(result.current.deleteName('1')).resolves.toBeUndefined();
+    expect(apiFetch).toHaveBeenCalledWith('/me/name/1', { method: 'DELETE' });
+  });
 });

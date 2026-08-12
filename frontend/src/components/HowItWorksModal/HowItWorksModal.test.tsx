@@ -23,12 +23,20 @@ describe('HowItWorksModal', () => {
     expect(screen.getByText('How we store names')).toBeInTheDocument();
     expect(screen.getByText('Get started')).toBeInTheDocument();
     expect(
-      screen.getByText('Store the names you use in different situations.'),
+      screen.getByText(
+        'Store and manage the names you use in different situations.',
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Each name has a context for where it is used/),
+      screen.getByText((_, element) =>
+        Boolean(
+          element?.tagName === 'P' &&
+            element.textContent?.includes(
+              'Each name has a context for where it is used',
+            ),
+        ),
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText('Add your first name with')).toBeInTheDocument();
   });
 
   it('calls onClose when Got it is clicked', async () => {

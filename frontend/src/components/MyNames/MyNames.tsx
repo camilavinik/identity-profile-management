@@ -6,6 +6,7 @@ import {
   type Context,
   type NameEntry,
 } from '../../hooks';
+import { ConfirmationModal } from '../ConfirmationModal/ConfirmationModal';
 import { ContextFilter } from '../ContextFilter/ContextFilter';
 import { CopyUserId } from '../CopyUserId/CopyUserId';
 import { EmptyStateAlert } from '../EmptyStateAlert/EmptyStateAlert';
@@ -42,9 +43,11 @@ export function MyNames({
   error: string | null;
   refresh: () => void;
 }) {
-  const { createName, updateName } = useNames();
+  const { createName, updateName, deleteName } = useNames();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<NameEntry | null>(null);
+  const [nameToDelete, setNameToDelete] = useState<NameEntry | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [filteredNames, filterProps] = useContextFilter(names, contexts);
 
   const handleAddName = async (data: NameFormData) => {
@@ -66,6 +69,17 @@ export function MyNames({
       removeAudio: data.removeAudio,
     });
     refresh();
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteName(nameToDelete!.id);
+      setNameToDelete(null);
+      refresh();
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -122,7 +136,11 @@ export function MyNames({
           <ul className="flex flex-col gap-3">
             {filteredNames.map((name) => (
               <li key={name.id}>
-                <NameCard name={name} onEdit={() => setEditing(name)} />
+                <NameCard
+                  name={name}
+                  onEdit={() => setEditing(name)}
+                  onDelete={() => setNameToDelete(name)}
+                />
               </li>
             ))}
           </ul>
@@ -150,6 +168,19 @@ export function MyNames({
           submitLabel="Save"
         />
       )}
+
+      {/* Delete confirmation */}
+      <ConfirmationModal
+        open={!!nameToDelete}
+        onClose={() => setNameToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete name"
+        confirmLabel="Delete"
+        confirming={isDeleting}
+      >
+        Deleting a name can't be undone. The name will be removed from your
+        active list, but you can still find it in History.
+      </ConfirmationModal>
     </div>
   );
 }

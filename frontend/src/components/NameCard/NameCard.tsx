@@ -2,22 +2,25 @@ import type { NameEntry } from '../../hooks';
 import { AudioPlayer } from '../AudioPlayer/AudioPlayer';
 import { ContextCharsetBadge } from '../ContextCharsetBadge/ContextCharsetBadge';
 import { Options } from '../Options/Options';
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 
 export function NameCard({
   name,
   skeleton = false,
   onEdit,
+  onDelete,
   size = 'md',
   border = false,
 }: {
   name: NameEntry;
   skeleton?: boolean;
   onEdit?: () => void;
+  onDelete?: () => void;
   size?: 'sm' | 'md';
   border?: boolean;
 }) {
   const small = size === 'sm';
+  const showOptions = onEdit || onDelete;
 
   if (skeleton) {
     return <div className={`skeleton w-full ${small ? 'h-20' : 'h-26'}`} />;
@@ -46,14 +49,28 @@ export function NameCard({
             </ContextCharsetBadge>
           </div>
 
-          {onEdit && (
+          {showOptions && (
             <Options menuClassName="w-32">
-              <li>
-                <button type="button" onClick={onEdit}>
-                  <Pencil className="size-4" />
-                  Edit
-                </button>
-              </li>
+              {onEdit && (
+                <li>
+                  <button type="button" onClick={onEdit}>
+                    <Pencil className="size-4" />
+                    Edit
+                  </button>
+                </li>
+              )}
+              {onDelete && (
+                <li>
+                  <button
+                    type="button"
+                    className="text-error hover:bg-error/10 hover:text-error"
+                    onClick={onDelete}
+                  >
+                    <Trash2 className="size-4" />
+                    Delete
+                  </button>
+                </li>
+              )}
             </Options>
           )}
         </div>

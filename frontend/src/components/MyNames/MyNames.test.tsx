@@ -14,6 +14,7 @@ const names = [testName];
 
 const createName = vi.fn();
 const updateName = vi.fn();
+const deleteName = vi.fn();
 
 vi.mock('../../auth', () => ({
   useAuth: () => authMockState,
@@ -27,15 +28,17 @@ vi.mock('../../hooks', async () => {
     useNames: () => ({
       createName,
       updateName,
+      deleteName,
     }),
   };
 });
 
 describe('MyNames', () => {
   beforeEach(() => {
-    // Mock the createName and updateName functions
+    // Mock the createName, updateName and deleteName functions
     createName.mockReset().mockResolvedValue(undefined);
     updateName.mockReset().mockResolvedValue(undefined);
+    deleteName.mockReset().mockResolvedValue(undefined);
 
     // Reset the shared auth mock state
     resetAuthMock();
@@ -224,6 +227,55 @@ describe('MyNames', () => {
       }),
     );
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it('deletes a name from the options menu', async () => {
+    const user = userEvent.setup();
+    const refresh = vi.fn();
+
+    render(
+      <MyNames
+        names={names}
+        contexts={testContexts}
+        loading={false}
+        error={null}
+        refresh={refresh}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByText('Delete name')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deleting a name can't be undone/),
+    ).toBeInTheDocument();
+
+    const confirmDelete = screen.getAllByRole('button', { name: 'Delete' })[1];
+    await user.click(confirmDelete);
+    expect(deleteName).toHaveBeenCalledWith(testName.id);
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it('cancels deleting a name from the confirmation modal', async () => {
+    const user = userEvent.setup();
+    const refresh = vi.fn();
+
+    render(
+      <MyNames
+        names={names}
+        contexts={testContexts}
+        loading={false}
+        error={null}
+        refresh={refresh}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByText('Delete name')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByText('Delete name')).not.toBeInTheDocument();
+    expect(deleteName).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('pre-fills an empty value when editing a name without one', async () => {

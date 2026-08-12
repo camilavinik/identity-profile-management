@@ -120,6 +120,10 @@ export function useNames() {
     [uploadAudio, deleteAudio],
   );
 
+  const deleteName = useCallback((id: string) => {
+    return apiFetch<void>(`/me/name/${id}`, { method: 'DELETE' });
+  }, []);
+
   return {
     fetchCurrentNames,
     fetchHistory,
@@ -127,5 +131,6 @@ export function useNames() {
     fetchUserNamesById,
     createName,
     updateName,
+    deleteName,
   };
 }
