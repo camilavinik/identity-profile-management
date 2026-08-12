@@ -8,3 +8,13 @@
 [data-theme='dark'] {
   --color-base-content: #d2d6d7;
 }
+
+.select {
+  anchor-name: --context-select;
+}
+
+.select select::picker(select) {
+  position-anchor: --context-select;
+  left: anchor(left);
+  width: anchor-size(width);
+}

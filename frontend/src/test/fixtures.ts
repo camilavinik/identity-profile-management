@@ -1,8 +1,16 @@
 import type { Context, HistoryEntry, HistoryPage, NameEntry } from '../hooks';
 
 export const testContexts: Context[] = [
-  { key: 'legal', name: 'Legal', description: null },
-  { key: 'religious', name: 'Religious', description: null },
+  {
+    key: 'legal',
+    name: 'Legal',
+    description: 'Test description for Legal',
+  },
+  {
+    key: 'religious',
+    name: 'Religious',
+    description: 'Test description for Religious',
+  },
 ];
 
 export const testName: NameEntry = {

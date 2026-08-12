@@ -67,6 +67,22 @@ describe('NameFormModal', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows context descriptions in the dropdown', () => {
+    render(
+      <NameFormModal
+        open
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        contexts={testContexts}
+      />,
+    );
+
+    expect(screen.getByText('Test description for Legal')).toBeInTheDocument();
+    expect(
+      screen.getByText('Test description for Religious'),
+    ).toBeInTheDocument();
+  });
+
   it('uses custom title and submit label', () => {
     render(
       <NameFormModal

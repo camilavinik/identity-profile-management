@@ -1,5 +1,11 @@
 import { Info, Languages, Signature, Tag } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createElement,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { Context } from '../../hooks';
 import { ErrorAlert } from '../ErrorAlert/ErrorAlert';
 import { Modal } from '../Modal/Modal';
@@ -106,19 +112,27 @@ export function NameFormModal({
     <Modal open={open} onClose={handleClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
         <Field label="Context" tooltip="The situation where this name is used">
-          <label className="select w-full">
+          <label className="select w-full [&_option]:items-start [&_selectedcontent_.context-desc]:hidden">
             <Tag className="size-4 opacity-50 mr-0.5" />
             <select
               value={form.context}
               onChange={(e) => updateForm('context', e.target.value)}
               required
             >
+              <button type="button">{createElement('selectedcontent')}</button>
               <option value="" disabled>
                 Pick a context
               </option>
               {contexts.map((ctx) => (
                 <option key={ctx.key} value={ctx.key}>
-                  {ctx.name}
+                  <span className="flex flex-col">
+                    <span>{ctx.name}</span>
+                    {ctx.description && (
+                      <span className="context-desc text-xs text-gray-500">
+                        {ctx.description}
+                      </span>
+                    )}
+                  </span>
                 </option>
               ))}
             </select>
