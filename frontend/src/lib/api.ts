@@ -1,0 +1,55 @@
+import { TOKEN_KEY } from '../auth/AuthContext';
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:3000';
+
+  // Get token from localStorage
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  // Set headers
+  const headers = new Headers(options.headers);
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (
+    options.body &&
+    !headers.has('Content-Type') &&
+    !(options.body instanceof FormData)
+  ) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  // Fetch
+  const res = await fetch(`${backendUrl}${path}`, { ...options, headers });
+  const body = (await res.json().catch(() => null)) as {
+    message?: string | string[];
+  } | null;
+
+  // If unauthorized, logout and redirect to login, except for auth routes
+  if (res.status === 401 && !path.includes('/auth/')) {
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.href = '/login';
+  }
+
+  // If not ok, throw error (NestJS validation errors can be an array)
+  if (!res.ok) {
+    const message = Array.isArray(body?.message)
+      ? body.message.join(', ')
+      : (body?.message ?? res.statusText);
+    throw new ApiError(res.status, message);
+  }
+
+  // Return body
+  return body as T;
+}
