@@ -5,6 +5,10 @@
     dark;
 }
 
+@theme {
+  --font-logo: 'Fraunces', ui-serif, Georgia, serif;
+}
+
 [data-theme='dark'] {
   --color-base-content: #d2d6d7;
 }

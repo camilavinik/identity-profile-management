@@ -38,16 +38,10 @@ export function Layout({
       <div className="fixed top-4 right-4">
         <ThemeToggle size="md" />
       </div>
-      <div className="relative w-full max-w-md">
-        {showBackToLogin && (
-          <Link
-            to="/login"
-            className="btn btn-ghost btn-sm absolute bottom-full left-0 mb-2 gap-1.5 px-2"
-          >
-            <ArrowLeft className="size-4" />
-            Back to login
-          </Link>
-        )}
+      <div className="w-full max-w-md">
+        <p className="font-logo mb-3 text-center text-4xl font-semibold">
+          nomina
+        </p>
         <div className="card w-full shadow-md border border-base-300">
           <form className="card-body gap-4" onSubmit={onSubmit}>
             {showAuthTabs && (
@@ -112,6 +106,12 @@ export function Layout({
             )}
           </form>
         </div>
+        {showBackToLogin && (
+          <Link to="/login" className="btn btn-ghost btn-sm mt-2 gap-1.5 px-2">
+            <ArrowLeft className="size-4" />
+            Back to login
+          </Link>
+        )}
       </div>
     </div>
   );

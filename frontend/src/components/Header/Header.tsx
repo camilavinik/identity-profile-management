@@ -29,9 +29,9 @@ export function Header({ contexts }: { contexts: Context[] }) {
     <header className="bg-base-100 shadow-xs">
       <div className="container mx-auto grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-3 px-4 py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:py-2">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-2xl font-bold">IPM</h1>
-          <span className="hidden text-sm text-gray-500 sm:inline">
-            Identity Profile Management
+          <h1 className="font-logo text-3xl font-semibold">nomina</h1>
+          <span className="hidden text-xs text-gray-500 sm:inline">
+            Personal Identity Management
           </span>
         </div>
 

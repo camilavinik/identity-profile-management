@@ -79,15 +79,17 @@ describe('Header', () => {
   it('shows the project name and user email', () => {
     renderHeader();
 
-    expect(screen.getByText('IPM')).toBeInTheDocument();
-    expect(screen.getByText('Identity Profile Management')).toBeInTheDocument();
+    expect(screen.getByText('nomina')).toBeInTheDocument();
+    expect(
+      screen.getByText('Personal Identity Management'),
+    ).toBeInTheDocument();
     expect(screen.getByText('test@email.com')).toBeInTheDocument();
   });
 
   it('keeps the full title available for larger screens', () => {
     renderHeader();
 
-    expect(screen.getByText('Identity Profile Management')).toHaveClass(
+    expect(screen.getByText('Personal Identity Management')).toHaveClass(
       'hidden',
       'sm:inline',
     );
